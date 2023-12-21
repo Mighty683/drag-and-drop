@@ -17,11 +17,11 @@ export function WeekDayView({ date }: WeekDayViewProps) {
       ...calendarSlotTime,
       events: getCalendarEventsForSlot(calendarSlotTime, events)
     }));
-  }, [date]);
+  }, [date, events]);
 
   return <div className='week-day-view'>
     {daySlots.map((slot) => (
-      <WeekDaySlot slot={slot} />
+      <WeekDaySlot key={slot.start.getTime()} slot={slot} />
     ))}
   </div>
 }

@@ -15,7 +15,7 @@ export function WeekView() {
       <WeekViewHeader />
       <div className="week-view__days">
         {weekDays.map((date) => (
-          <WeekDayView date={date} />
+          <WeekDayView key={date.getTime()} date={date} />
         ))}
       </div>
     </div>

@@ -1,31 +1,31 @@
 import { useLayoutEffect, useMemo, useState } from "react";
 import { usePositionCollector } from "../../positionCollector";
 import { useCalendarStore } from "../../store/store";
-import { CalendarEventView } from "../../types";
 import { EventTile } from "./EventTile";
 
 export function EventsOverlay() {
   const calendarEvents = useCalendarStore(state => state.events);
   const collector = usePositionCollector();
+  const [collectTimestamp, setCollectTimestamp] = useState(0);
 
-  const [collectedEventsState, setCollectedEventsState] = useState<CalendarEventView[]>([]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const collectedEventsState = useMemo(() => Array.from(collector.eventsMap.values()), [collector.eventsMap, collectTimestamp]);
 
   const displayEvents = useMemo(() => {
     return collectedEventsState
-      .filter(eventView => calendarEvents.find(calendarEvent => calendarEvent.id === eventView.event.id))
+      .filter(eventView => calendarEvents.find(calendarEvent => calendarEvent.id.startsWith(eventView.event.id)))
       .map(eventView => ({
         ...eventView,
         top: eventView.top,
         left: eventView.left,
-      }))
+      }));
   }, [collectedEventsState, calendarEvents]);
 
 
   useLayoutEffect(() => {
-    setTimeout(() => {
-      const collectedEvents = Array.from(collector.eventsMap.values());
-      setCollectedEventsState(collectedEvents);
-    }, 100);
+    setInterval(() => {
+      setCollectTimestamp(Date.now());
+    }, 30);
   }, []);
 
   return <>

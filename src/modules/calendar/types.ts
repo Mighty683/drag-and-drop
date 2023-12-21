@@ -4,15 +4,15 @@ export type CalendarEventView = {
   width: number;
   height: number;
   event: CalendarEvent;
-}
+};
 
 export type CalendarEvent = {
   start: Date;
   end: Date;
   title: string;
-  operation?: CalendarEventType;
+  operation?: CalendarEventOperations;
   id: CalendarEventId;
-}
+};
 
 export type CalendarEventId = string;
 
@@ -25,19 +25,17 @@ export type CalendarSlot = CalendarSlotTime & {
   events?: CalendarEvent[];
 };
 
-export enum CalendarEventType {
-  draggedMoved = 'draggedMoved',
-  draggedInput = 'draggedInput',
-  inPlace = 'inPlace',
-};
-
-export enum CalendarSlotStatus {
-  free = 'free',
-  busy = 'busy',
-  error = 'error',
+export enum CalendarEventOperations {
+  dragging = "dragging",
+  dragged = "dragged",
+  none = "none",
 }
 
-export type EditCalendarEventPayload = Omit<CalendarEvent, 'id'>;
+export enum CalendarSlotStatus {
+  free = "free",
+  busy = "busy",
+  error = "error",
+}
 
 export type CalendarStore = {
   events: CalendarEvent[];
@@ -45,7 +43,8 @@ export type CalendarStore = {
   displayDate: Date;
   setDisplayDate: (date: Date) => void;
   removeEvent: (id: string) => void;
-  editEvent: (id: string, data: EditCalendarEventPayload) => void;
+  editEvent: (id: string, data: CalendarEvent) => void;
+  addOrEditEvent: (id: string, data: CalendarEvent) => void;
 };
 
 export type CalendarPositionCollector = {
@@ -57,4 +56,4 @@ export type CalendarPositionCollector = {
 export type CalendarEventViewStore = {
   eventViews: CalendarEventView[];
   setViews: (views: CalendarEventView[]) => void;
-}
+};

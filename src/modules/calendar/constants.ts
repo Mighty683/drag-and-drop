@@ -25,3 +25,5 @@ export const MonthNamesMap = {
 };
 
 export const SLOT_HEIGHT = 50;
+
+export const CALENDAR_EVENT_DATE_TYPE = 'calendar-input';

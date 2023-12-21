@@ -1,6 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { CalendarEvent, CalendarSlot, CalendarSlotTime } from "./types";
 
-import {format} from 'date-fns/format';
+import { format } from "date-fns/format";
 
 export const thirtyMinutes = 1000 * 60 * 30;
 
@@ -33,23 +34,22 @@ export function getDaySlotsTimes(date: Date) {
 }
 
 export function formatSlotDate(date: CalendarSlot) {
-  return `${format(date.start, 'HH:mm')} - ${format(date.end, 'HH:mm')}`;
+  return `${format(date.start, "HH:mm")} - ${format(date.end, "HH:mm")}`;
 }
 
-export function getEventLengthInSlots(event: CalendarEvent) {
+export function getEventRequiredSlotsNumber(event: CalendarEvent) {
   return Math.floor((event.end.getTime() - event.start.getTime()) / thirtyMinutes);
 }
 
-export function calendarEventBeginInSlot(slot: CalendarSlot, event: CalendarEvent) {
-  return event.start.getTime() > slot.start.getTime() && event.start.getTime() < slot.end.getTime();
+export function getEventEndIfStartInSlot(event: CalendarEvent, slot: CalendarSlot) {
+  return new Date(slot.start.getTime() + (event.end.getTime() - event.start.getTime()));
 }
 
 export function getCalendarEventsForSlot(slot: CalendarSlot, events: CalendarEvent[]): CalendarEvent[] {
-  return events.filter((event) => {
-    const eventBeginInSlot = calendarEventBeginInSlot(slot, event);
-    const eventEndInSlot = event.end.getTime() > slot.start.getTime() && event.end.getTime() < slot.end.getTime();
-    const eventInSlot = event.start.getTime() < slot.start.getTime() && event.end.getTime() > slot.end.getTime();
-    return eventBeginInSlot || eventEndInSlot || eventInSlot;
+  return events.filter(event => {
+    const eventBeginInSlot =
+      event.start.getTime() >= slot.start.getTime() && event.start.getTime() < slot.end.getTime();
+    return eventBeginInSlot;
   });
 }
 
@@ -58,27 +58,39 @@ export function createMockEvents(): CalendarEvent[] {
   const event1: CalendarEvent = {
     start: new Date(now.getTime() + 1000 * 60 * 60 * 2),
     end: new Date(now.getTime() + 1000 * 60 * 60 * 3),
-    title: 'Event 1',
-    id: '1',
+    title: "Event 1",
+    id: "1",
   };
   const event2: CalendarEvent = {
     start: new Date(now.getTime() + 1000 * 60 * 60 * 4),
     end: new Date(now.getTime() + 1000 * 60 * 60 * 5),
-    title: 'Event 2',
-    id: '2',
+    title: "Event 2",
+    id: "2",
   };
   const event3: CalendarEvent = {
     start: new Date(now.getTime() + 1000 * 60 * 60 * 6),
     end: new Date(now.getTime() + 1000 * 60 * 60 * 7),
-    title: 'Event 3',
-    id: '3',
+    title: "Event 3",
+    id: "3",
   };
   const event4: CalendarEvent = {
     start: new Date(now.getTime() + 1000 * 60 * 60 * 6),
     end: new Date(now.getTime() + 1000 * 60 * 60 * 7),
-    title: 'Event 4',
-    id: '4',
+    title: "Event 4",
+    id: "4",
   };
 
   return [event1, event2, event3, event4];
+}
+
+export function parseEventJSON(eventJSON: string): CalendarEvent | undefined {
+  const event = JSON.parse(eventJSON) as CalendarEvent;
+  if (!event.id) {
+    return undefined;
+  }
+  return {
+    ...event,
+    start: new Date(event.start),
+    end: new Date(event.end),
+  };
 }

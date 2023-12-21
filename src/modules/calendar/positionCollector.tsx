@@ -9,7 +9,7 @@ export const PositionCollectorContextRef = createContext<CalendarPositionCollect
 
 PositionCollectorContextRef.Provider
 
-export function PositionCollectorProvider({ children }: React.PropsWithChildren<{}>) {
+export function PositionCollectorProvider({ children }: React.PropsWithChildren<Record<string, never>>) {
   const collector = useRef<CalendarPositionCollector>({
     eventsMap: new Map(),
     positionLeft: 0,
