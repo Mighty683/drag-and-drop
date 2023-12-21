@@ -12,7 +12,7 @@ export type WeekDaySlotProps = {
   slot: CalendarSlot
 };
 export function WeekDaySlot({ slot }: WeekDaySlotProps) {
-  const { removeEvent, editEvent, addEvent, addOrEditEvent } = useCalendarStore(store => ({ removeEvent: store.removeEvent, editEvent: store.editEvent, addEvent: store.addEvent, addOrEditEvent: store.addOrEditEvent }));
+  const { removeEvent, editEvent, addEvent, addOrEditEvent } = useCalendarStore();
   const ref = useRef<HTMLDivElement>(null);
 
 
@@ -33,19 +33,21 @@ export function WeekDaySlot({ slot }: WeekDaySlotProps) {
     }, 50);
 
     const listenerDragDrop = (dragEvent: DragEvent) => {
+      dragEvent.preventDefault();
       const event: CalendarEvent | undefined = parseEventJSON(dragEvent.dataTransfer?.getData(CALENDAR_EVENT_DATE_TYPE) || '{}');
 
-      console.log('drag drop', event);
-      if (!event || slot.rows?.find(slotRow => slotRow.event?.id === event.id)) return;
-      console.log('drag drop', event.id);
+      if (!event || slot.rows?.find(slotRow => slotRow.event?.id === event.id)) {
+        return;
+      }
+
       removeEvent(event.id);
       editEvent(`${event.id}-dragging`, {
         ...event,
         start: slot.start,
+        id: event.id,
         end: getEventEndIfStartInSlot(event, slot),
         operation: CalendarEventOperations.none,
       });
-      dragEvent.preventDefault();
     };
 
     const listenerDragOver = (dragEvent: DragEvent) => {

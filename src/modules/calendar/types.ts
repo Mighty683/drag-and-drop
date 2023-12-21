@@ -41,4 +41,6 @@ export type CalendarStore = {
   removeEvent: (id: string) => void;
   editEvent: (id: string, data: CalendarEvent) => void;
   addOrEditEvent: (id: string, data: CalendarEvent) => void;
+  isAnyEventDragging: boolean;
+  setIsAnyEventDragging: (isDragging: boolean) => void;
 };

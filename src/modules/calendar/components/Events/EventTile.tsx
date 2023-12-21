@@ -17,6 +17,9 @@ export function EventTile({
   className
 }: EventTileProps) {
   const editEvent = useCalendarStore(state => state.editEvent);
+  const removeEvent = useCalendarStore(state => state.removeEvent);
+  const isAnyEventDragging = useCalendarStore(state => state.isAnyEventDragging);
+  const setIsAnyEventDragging = useCalendarStore(state => state.setIsAnyEventDragging);
   const ref = useRef<HTMLDivElement>(null);
   const operationText = event.operation ? `(${event.operation})` : '';
 
@@ -24,19 +27,17 @@ export function EventTile({
     const node = ref.current;
     const dragStartListener = (dragEvent: DragEvent) => {
       dragEvent.dataTransfer?.setData(CALENDAR_EVENT_DATE_TYPE, JSON.stringify(event));
+      setIsAnyEventDragging(true);
       editEvent(event.id, {
         ...event,
         operation: CalendarEventOperations.dragged
       });
     };
     const dragEndListener = (dragEvent: DragEvent) => {
-      const hasData = !!dragEvent.dataTransfer?.getData(CALENDAR_EVENT_DATE_TYPE);
+      console.log(dragEvent.target)
+      setIsAnyEventDragging(false);
 
-      if (hasData) return;
-      editEvent(event.id, {
-        ...event,
-        operation: CalendarEventOperations.none
-      });
+      removeEvent(`${event?.id}-dragging`);
     }
     ref.current?.addEventListener('dragstart', dragStartListener);
     ref.current?.addEventListener('dragend', dragEndListener);
@@ -44,14 +45,15 @@ export function EventTile({
     return () => {
       node?.removeEventListener('dragstart', dragStartListener);
     }
-  }, [editEvent, event]);
+  }, [editEvent, event, removeEvent, setIsAnyEventDragging]);
 
   return <div
     ref={ref}
     style={{
       height: getEventRequiredSlotsNumber(event) * 50,
-      pointerEvents: event.operation === CalendarEventOperations.dragging ? 'none' : 'all',
-      backgroundColor: `red`
+      pointerEvents: isAnyEventDragging ? 'none' : 'all',
+      backgroundColor: '#ccc',
+      opacity: event.operation === CalendarEventOperations.dragged ? 0.5 : 1
     }} className={`${className} event-tile`} draggable>
     {event.title}
     <br />

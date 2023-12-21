@@ -23,4 +23,6 @@ export const useCalendarStore = create<CalendarStore>(set => ({
     set(state => ({
       events: state.events.map(event => (event.id === id ? { ...event, ...data } : event)),
     })),
+  isAnyEventDragging: false,
+  setIsAnyEventDragging: (isDragging: boolean) => set(() => ({ isAnyEventDragging: isDragging })),
 }));
