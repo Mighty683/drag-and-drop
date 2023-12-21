@@ -1,37 +1,40 @@
 import { useEffect, useRef } from "react";
-import { CalendarEventOperations, CalendarEventView } from "../../types";
+import { CalendarEvent, CalendarEventOperations } from "../../types";
 
 
 import './EventTile.scss';
 import { CALENDAR_EVENT_DATE_TYPE } from "../../constants";
 import { useCalendarStore } from "../../store/store";
+import { getEventRequiredSlotsNumber } from "../../helpers";
 
 export type EventTileProps = {
-  eventView: CalendarEventView;
+  event: CalendarEvent;
+  className?: string;
 }
 
 export function EventTile({
-  eventView
+  event,
+  className
 }: EventTileProps) {
   const editEvent = useCalendarStore(state => state.editEvent);
   const ref = useRef<HTMLDivElement>(null);
-  const operationText = eventView.event.operation ? `(${eventView.event.operation})` : '';
+  const operationText = event.operation ? `(${event.operation})` : '';
 
   useEffect(() => {
     const node = ref.current;
-    const dragStartListener = (event: DragEvent) => {
-      event.dataTransfer?.setData(CALENDAR_EVENT_DATE_TYPE, JSON.stringify(eventView.event));
-      editEvent(eventView.event.id, {
-        ...eventView.event,
+    const dragStartListener = (dragEvent: DragEvent) => {
+      dragEvent.dataTransfer?.setData(CALENDAR_EVENT_DATE_TYPE, JSON.stringify(event));
+      editEvent(event.id, {
+        ...event,
         operation: CalendarEventOperations.dragged
       });
     };
-    const dragEndListener = (event: DragEvent) => {
-      const hasData = !!event.dataTransfer?.getData(CALENDAR_EVENT_DATE_TYPE);
+    const dragEndListener = (dragEvent: DragEvent) => {
+      const hasData = !!dragEvent.dataTransfer?.getData(CALENDAR_EVENT_DATE_TYPE);
 
       if (hasData) return;
-      editEvent(eventView.event.id, {
-        ...eventView.event,
+      editEvent(event.id, {
+        ...event,
         operation: CalendarEventOperations.none
       });
     }
@@ -41,19 +44,16 @@ export function EventTile({
     return () => {
       node?.removeEventListener('dragstart', dragStartListener);
     }
-  }, [editEvent, eventView.event]);
+  }, [editEvent, event]);
 
   return <div
     ref={ref}
     style={{
-      top: eventView.top,
-      left: eventView.left,
-      width: eventView.width,
-      height: eventView.height,
-      pointerEvents: eventView.event.operation === CalendarEventOperations.dragging ? 'none' : 'all',
-      backgroundColor: (parseInt(eventView.event.id) % 2) === 0 ? '#ccc' : '#ggg',
-    }} className="event-tile" draggable>
-    {eventView.event.title}
+      height: getEventRequiredSlotsNumber(event) * 50,
+      pointerEvents: event.operation === CalendarEventOperations.dragging ? 'none' : 'all',
+      backgroundColor: `red`
+    }} className={`${className} event-tile`} draggable>
+    {event.title}
     <br />
     {operationText}
   </div>

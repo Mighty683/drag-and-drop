@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import './WeekDayView.scss';
-import { getCalendarEventsForSlot, getDaySlotsTimes } from '../helpers';
+import { reduceEventsToDaySlots } from '../helpers';
 import { WeekDaySlot } from './WeekDaySlot';
 import { useCalendarStore } from '../store/store';
 import { CalendarSlot } from '../types';
@@ -12,11 +12,7 @@ export type WeekDayViewProps = {
 export function WeekDayView({ date }: WeekDayViewProps) {
   const events = useCalendarStore(state => state.events);
   const daySlots = useMemo<CalendarSlot[]>(() => {
-    const calendarDaySlots = getDaySlotsTimes(date);
-    return calendarDaySlots.map<CalendarSlot>((calendarSlotTime) => ({
-      ...calendarSlotTime,
-      events: getCalendarEventsForSlot(calendarSlotTime, events)
-    }));
+    return reduceEventsToDaySlots(date, events);
   }, [date, events]);
 
   return <div className='week-day-view'>

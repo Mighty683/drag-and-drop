@@ -1,12 +1,12 @@
 import './WeekDaySlot.scss'
 
-import { useEffect, useLayoutEffect, useRef } from 'react';
-import { CALENDAR_EVENT_DATE_TYPE, SLOT_HEIGHT } from '../constants';
-import { formatSlotDate, getEventEndIfStartInSlot, getEventRequiredSlotsNumber, parseEventJSON } from '../helpers';
+import { useEffect, useRef } from 'react';
+import { CALENDAR_EVENT_DATE_TYPE, } from '../constants';
+import { formatSlotDate, getEventEndIfStartInSlot, parseEventJSON } from '../helpers';
 import { CalendarEvent, CalendarEventOperations, CalendarSlot } from '../types';
-import { usePositionCollector } from '../positionCollector';
 import { useCalendarStore } from '../store/store';
 import { throttle } from 'lodash';
+import { EventTile } from './Events/EventTile';
 
 export type WeekDaySlotProps = {
   slot: CalendarSlot
@@ -22,7 +22,7 @@ export function WeekDaySlot({ slot }: WeekDaySlotProps) {
       dragEvent.preventDefault();
       const event: CalendarEvent | undefined = parseEventJSON(dragEvent.dataTransfer?.getData(CALENDAR_EVENT_DATE_TYPE) || '{}');
 
-      if (!event || slot.events?.find(slotEvent => slotEvent.id === event.id)) return;
+      if (!event || slot.rows?.find(slotRow => slotRow.event?.id === event.id)) return;
       addOrEditEvent(`${event.id}-dragging`, {
         ...event,
         id: `${event.id}-dragging`,
@@ -36,7 +36,7 @@ export function WeekDaySlot({ slot }: WeekDaySlotProps) {
       const event: CalendarEvent | undefined = parseEventJSON(dragEvent.dataTransfer?.getData(CALENDAR_EVENT_DATE_TYPE) || '{}');
 
       console.log('drag drop', event);
-      if (!event || slot.events?.find(slotEvent => slotEvent.id === event.id)) return;
+      if (!event || slot.rows?.find(slotRow => slotRow.event?.id === event.id)) return;
       console.log('drag drop', event.id);
       removeEvent(event.id);
       editEvent(`${event.id}-dragging`, {
@@ -61,51 +61,16 @@ export function WeekDaySlot({ slot }: WeekDaySlotProps) {
       node?.removeEventListener('drop', listenerDragDrop);
       node?.removeEventListener('dragover', listenerDragOver);
     }
-  }, [addEvent, addOrEditEvent, editEvent, removeEvent, slot, slot.events, slot.start])
+  }, [addEvent, addOrEditEvent, editEvent, removeEvent, slot, slot.start])
 
   return <div ref={ref} className='week-day-slot'>
     {formatSlotDate(slot)}
-    <div className="week-day-slot__events-placer">
-      {slot.events?.map((event) => (
-        <EventDataCollector key={event.id} calendarEvent={event} />
-      ))}
+    <div className="week-day-slot__events-rows">
+      {slot.rows?.map((slotRow) => {
+        const event = slotRow.event;
+        if (!event) return <div className='week-day-slot__empty-row'></div>;
+        return <EventTile key={event.id} event={event} />
+      })}
     </div>
   </div>;
-}
-
-export function EventDataCollector(
-  { calendarEvent }: {
-    calendarEvent: CalendarEvent
-  }
-) {
-  const ref = useRef<HTMLDivElement>(null);
-
-  const positionCollector = usePositionCollector();
-
-  useLayoutEffect(() => {
-    if (!ref.current) return;
-
-    const resizeListener = () => {
-      const { top, left, bottom, right } = ref.current!.getBoundingClientRect();
-      const topWithScroll = top + window.scrollY;
-      positionCollector.eventsMap.set(calendarEvent.id, {
-        left: left,
-        top: topWithScroll,
-        width: right - left,
-        height: bottom - topWithScroll,
-        event: calendarEvent,
-      });
-    };
-    resizeListener();
-    window.addEventListener('resize', resizeListener);
-    
-    return () => {
-      window.removeEventListener('resize', resizeListener);
-    }
-  }, [calendarEvent, calendarEvent.id, positionCollector.eventsMap]);
-
-  return <div ref={ref} className="week-day-slot__event_data_collector" style={{
-    height: getEventRequiredSlotsNumber(calendarEvent) * SLOT_HEIGHT,
-  }}
-  />
 }

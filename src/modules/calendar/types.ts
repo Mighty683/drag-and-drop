@@ -1,11 +1,3 @@
-export type CalendarEventView = {
-  left: number;
-  top: number;
-  width: number;
-  height: number;
-  event: CalendarEvent;
-};
-
 export type CalendarEvent = {
   start: Date;
   end: Date;
@@ -22,7 +14,11 @@ export type CalendarSlotTime = {
 };
 
 export type CalendarSlot = CalendarSlotTime & {
-  events?: CalendarEvent[];
+  rows: CalendarSlotRow[];
+};
+
+export type CalendarSlotRow = {
+  event?: CalendarEvent;
 };
 
 export enum CalendarEventOperations {
@@ -45,15 +41,4 @@ export type CalendarStore = {
   removeEvent: (id: string) => void;
   editEvent: (id: string, data: CalendarEvent) => void;
   addOrEditEvent: (id: string, data: CalendarEvent) => void;
-};
-
-export type CalendarPositionCollector = {
-  eventsMap: Map<CalendarEventId, CalendarEventView>;
-  positionLeft: number;
-  positionTop: number;
-};
-
-export type CalendarEventViewStore = {
-  eventViews: CalendarEventView[];
-  setViews: (views: CalendarEventView[]) => void;
 };
