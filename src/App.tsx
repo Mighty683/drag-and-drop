@@ -1,10 +1,10 @@
-function Calendar() {
+import { Calendar } from "./modules/calendar/components/Calendar";
+
+function App() {
 
   return (
-    <div>
-      <h1>Calendar</h1>
-    </div>
+    <Calendar />
   )
 }
 
-export default Calendar;
+export default App;
