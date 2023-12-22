@@ -4,6 +4,7 @@ import {
   getDaySlotsTimes,
   getNumberOfEventsOverlappingWithSlotFromAfter,
   getNumberOfEventsOverlappingWithSlotFromBefore,
+  getCalendarSlot,
 } from "./helpers";
 import { CalendarEvent, CalendarSlotTime } from "./types";
 
@@ -32,7 +33,7 @@ describe("calendar helpers", () => {
       expect(slots[47].start.getMinutes()).toBe(30);
     });
   });
-  describe("getNumberOfEventsOverlappingWithSlotFromBefore", () => {
+  describe("getCalendarSlot", () => {
     it("should return the event which started before slot", () => {
       const event1: CalendarEvent = {
         start: new Date("2021-01-01 00:00"),
@@ -50,7 +51,7 @@ describe("calendar helpers", () => {
         start: new Date("2021-01-01 00:30"),
         end: new Date("2021-01-01 01:00"),
       };
-      expect(getNumberOfEventsOverlappingWithSlotFromBefore(testSlot, [event1, event2])).toBe(1);
+      expect(getCalendarSlot(testSlot, [event1, event2]).rows.length).toBe(2);
     });
 
     it("should not return the event which ended before slot", () => {
@@ -70,11 +71,8 @@ describe("calendar helpers", () => {
         start: new Date("2021-01-01 00:30"),
         end: new Date("2021-01-01 01:00"),
       };
-      expect(getNumberOfEventsOverlappingWithSlotFromBefore(testSlot, [event1, event2])).toBe(0);
+      expect(getCalendarSlot(testSlot, [event1, event2]).rows.length).toBe(1);
     });
-  });
-
-  describe("getNumberOfEventsOverlappingWithSlotFromAfter", () => {
     const testSlot: CalendarSlotTime = {
       start: new Date("2021-01-01 00:00"),
       end: new Date("2021-01-01 00:30"),
@@ -92,9 +90,8 @@ describe("calendar helpers", () => {
         title: "Event 2",
         id: "2",
       };
-      expect(getNumberOfEventsOverlappingWithSlotFromAfter(testSlot, [event1], [event1, event2])).toBe(1);
+      expect(getCalendarSlot(testSlot, [event1, event2]).rows.length).toBe(2);
     });
-
     it("should not return the event which ended after longest slot event", () => {
       const event1: CalendarEvent = {
         start: new Date("2021-01-01 00:00"),
@@ -108,7 +105,7 @@ describe("calendar helpers", () => {
         title: "Event 2",
         id: "2",
       };
-      expect(getNumberOfEventsOverlappingWithSlotFromAfter(testSlot, [event1], [event1, event2])).toBe(0);
+      expect(getCalendarSlot(testSlot, [event1, event2]).rows.length).toBe(1);
     });
 
     it("should not return the event which ended before longest slot event", () => {
@@ -124,7 +121,7 @@ describe("calendar helpers", () => {
         title: "Event 2",
         id: "2",
       };
-      expect(getNumberOfEventsOverlappingWithSlotFromAfter(testSlot, [event1], [event1, event2])).toBe(0);
+      expect(getCalendarSlot(testSlot, [event1, event2]).rows.length).toBe(1);
     });
 
     it("should return events which are chained with overlapping", () => {
@@ -146,7 +143,7 @@ describe("calendar helpers", () => {
         title: "Event 3",
         id: "3",
       };
-      expect(getNumberOfEventsOverlappingWithSlotFromAfter(testSlot, [event1], [event1, event2, event3])).toBe(2);
+      expect(getCalendarSlot(testSlot, [event1, event2, event3]).rows.length).toBe(3);
     });
     it("should find two events which are chained with overlapping", () => {
       const event1: CalendarEvent = {
@@ -167,7 +164,7 @@ describe("calendar helpers", () => {
         title: "Event 3",
         id: "3",
       };
-      expect(getNumberOfEventsOverlappingWithSlotFromAfter(testSlot, [event1], [event1, event2, event3])).toBe(2);
+      expect(getCalendarSlot(testSlot, [event1, event2, event3]).rows.length).toBe(3);
     });
   });
 });

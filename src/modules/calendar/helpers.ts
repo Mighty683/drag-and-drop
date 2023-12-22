@@ -191,25 +191,26 @@ export function reduceEventsToDaySlots(date: Date, events: CalendarEvent[]): Cal
   const daySlotsTimes = getDaySlotsTimes(date);
   const dayEvents = getEventsForDay(date, events);
   const sortedDayEvents = [...dayEvents].sort((a, b) => b.start.getTime() - a.start.getTime());
-  const daySlots: CalendarSlot[] = [];
-  daySlotsTimes.forEach(slotTimes => {
-    const [eventsBefore, slotEvents, eventsAfter] = splitEventsBySlot(sortedDayEvents, slotTimes);
-    const numberOfRowsBeforeSlot = getNumberOfEventsOverlappingWithSlotFromBefore(slotTimes, eventsBefore);
-    const numberOfRowAfterSlot = getNumberOfEventsOverlappingWithSlotFromAfter(slotTimes, slotEvents, eventsAfter);
-    daySlots.push({
-      start: slotTimes.start,
-      end: slotTimes.end,
-      rows: [
-        ...Array(numberOfRowsBeforeSlot)
-          .fill(null)
-          .map(() => ({ id: v4() })),
-        ...slotEvents.map(event => ({ event, id: v4() })),
-        ...Array(numberOfRowAfterSlot)
-          .fill(null)
-          .map(() => ({ id: v4() })),
-      ],
-    });
-  });
+  const daySlots: CalendarSlot[] = daySlotsTimes.map(slot => getCalendarSlot(slot, sortedDayEvents));
 
   return daySlots;
+}
+
+export function getCalendarSlot(slotTimes: CalendarSlotTime, sortedDayEvents: CalendarEvent[]): CalendarSlot {
+  const [eventsBefore, slotEvents, eventsAfter] = splitEventsBySlot(sortedDayEvents, slotTimes);
+  const numberOfRowsBeforeSlot = getNumberOfEventsOverlappingWithSlotFromBefore(slotTimes, eventsBefore);
+  const numberOfRowAfterSlot = getNumberOfEventsOverlappingWithSlotFromAfter(slotTimes, slotEvents, eventsAfter);
+  return {
+    start: slotTimes.start,
+    end: slotTimes.end,
+    rows: [
+      ...Array(numberOfRowsBeforeSlot)
+        .fill(null)
+        .map(() => ({ id: v4() })),
+      ...slotEvents.map(event => ({ event, id: v4() })),
+      ...Array(numberOfRowAfterSlot)
+        .fill(null)
+        .map(() => ({ id: v4() })),
+    ],
+  };
 }
