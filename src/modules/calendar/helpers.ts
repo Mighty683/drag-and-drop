@@ -45,37 +45,29 @@ export function getEventEndIfStartInSlot(event: CalendarEvent, slot: CalendarSlo
   return new Date(slot.start.getTime() + (event.end.getTime() - event.start.getTime()));
 }
 
-export function getCalendarEventsForSlot(slot: CalendarSlotTime, events: CalendarEvent[]): CalendarEvent[] {
-  return events.filter(event => {
-    const eventBeginInSlot =
-      event.start.getTime() >= slot.start.getTime() && event.start.getTime() < slot.end.getTime();
-    return eventBeginInSlot;
-  });
-}
-
 export function createMockEvents(): CalendarEvent[] {
   const now = new Date();
   const event1: CalendarEvent = {
-    start: new Date(now.getTime() - 1000 * 60 * 60 * 3),
-    end: new Date(now.getTime() - 1000 * 60 * 60 * 2),
+    start: new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0),
+    end: new Date(now.getFullYear(), now.getMonth(), now.getDate(), 1, 0, 0, 0),
     title: "Event 1",
     id: v4(),
   };
   const event2: CalendarEvent = {
-    start: new Date(now.getTime() - 1000 * 60 * 60 * 5),
-    end: new Date(now.getTime() - 1000 * 60 * 60 * 4),
+    start: new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0),
+    end: new Date(now.getFullYear(), now.getMonth(), now.getDate(), 1, 0, 0, 0),
     title: "Event 2",
     id: v4(),
   };
   const event3: CalendarEvent = {
-    start: new Date(now.getTime() - 1000 * 60 * 60 * 7),
-    end: new Date(now.getTime() - 1000 * 60 * 60 * 6),
+    start: new Date(now.getFullYear(), now.getMonth(), now.getDate(), 2, 0, 0, 0),
+    end: new Date(now.getFullYear(), now.getMonth(), now.getDate(), 4, 0, 0, 0),
     title: "Event 3",
     id: v4(),
   };
   const event4: CalendarEvent = {
-    start: new Date(now.getTime() - 1000 * 60 * 60 * 7),
-    end: new Date(now.getTime() - 1000 * 60 * 60 * 6),
+    start: new Date(now.getFullYear(), now.getMonth(), now.getDate(), 5, 0, 0, 0),
+    end: new Date(now.getFullYear(), now.getMonth(), now.getDate(), 5, 30, 0, 0),
     title: "Event 4",
     id: v4(),
   };
@@ -118,64 +110,92 @@ export function getEventsForDay(date: Date, events: CalendarEvent[]): CalendarEv
   return events.filter(event => event.start.getTime() >= dayStart.getTime() && event.end.getTime() < dayEnd.getTime());
 }
 
-export function getEventsOverlappingWithSlotFromBefore(
+export function getNumberOfEventsOverlappingWithSlotFromBefore(
   slot: CalendarSlotTime,
-  events: CalendarEvent[]
-): CalendarEvent[] {
-  return events
-    .filter(event => {
-      const eventOverlap = event.start.getTime() < slot.start.getTime() && event.end.getTime() > slot.start.getTime();
-      return eventOverlap;
-    })
-    .reduce<CalendarEvent[]>((accumulator, predecessorEvent) => {
-      const eventsOverlappingWithPredecessor = getEventsOverlappingWithSlotFromBefore(predecessorEvent, events);
-      if (eventsOverlappingWithPredecessor.length > 0) {
-        return accumulator.concat(eventsOverlappingWithPredecessor, [predecessorEvent]);
-      } else {
-        accumulator.push(predecessorEvent);
-        return accumulator;
+  sortedEvents: CalendarEvent[]
+): number {
+  let slotVisualChainStart = slot.start.getTime();
+  let overlappingEventsCount = 0;
+  /**
+   * Sort events by start date descending
+   * because we want to search by slotVisualChainStart and calculate overlapping events
+   * thanks to sorting we know that we don't miss chain of events if we find one
+   */
+
+  for (const processedEvent of sortedEvents) {
+    const startOfProcessedEvent = processedEvent.start.getTime();
+    if (startOfProcessedEvent < slotVisualChainStart && processedEvent.end.getTime() > slotVisualChainStart) {
+      overlappingEventsCount++;
+      if (startOfProcessedEvent < slotVisualChainStart) {
+        slotVisualChainStart = startOfProcessedEvent;
       }
-    }, []);
+    }
+  }
+
+  return overlappingEventsCount;
 }
 
-export function getEventsOverlappingWithSlotFromAfter(
+export function getNumberOfEventsOverlappingWithSlotFromAfter(
+  slot: CalendarSlotTime,
   slotEvents: CalendarEvent[],
-  events: CalendarEvent[]
-): CalendarEvent[] {
+  sortedEvents: CalendarEvent[]
+): number {
+  const slotEnd = slot.end.getTime();
   const longestSlotEvent = getLongestEvent(slotEvents);
   if (!longestSlotEvent) {
-    return [];
+    return 0;
+  } else {
+    let slotVisualChainEnd = longestSlotEvent.end.getTime();
+    let overlappingEventsCount = 0;
+
+    /**
+     * Sort events by start date ascending
+     * because we want to search by slotVisualChainEnd and calculate overlapping events
+     * thanks to sorting we know that we don't miss chain of events if we find one
+     */
+
+    for (const processedEvent of sortedEvents) {
+      const endOfProcessedEvent = processedEvent.end.getTime();
+      if (processedEvent.start.getTime() < slotVisualChainEnd && processedEvent.start.getTime() >= slotEnd) {
+        overlappingEventsCount++;
+        if (endOfProcessedEvent > slotVisualChainEnd) {
+          slotVisualChainEnd = endOfProcessedEvent;
+        }
+      }
+    }
+    return overlappingEventsCount;
   }
-  return events
-    .filter(event => {
-      if (event === longestSlotEvent) {
-        return false;
-      }
-      const eventOverlapWithLongestEvent =
-        event.start.getTime() > longestSlotEvent.start.getTime() &&
-        event.start.getTime() < longestSlotEvent.end.getTime();
-      return eventOverlapWithLongestEvent;
-    })
-    .reduce<CalendarEvent[]>((accumulator, successorEvent) => {
-      const eventsOverlappingWithSuccessor = getEventsOverlappingWithSlotFromAfter([successorEvent], events);
-      if (eventsOverlappingWithSuccessor.length > 0) {
-        return accumulator.concat(eventsOverlappingWithSuccessor, [successorEvent]);
-      } else {
-        accumulator.push(successorEvent);
-        return accumulator;
-      }
-    }, []);
+}
+
+export function splitEventsBySlot(
+  events: CalendarEvent[],
+  slot: CalendarSlotTime
+): [CalendarEvent[], CalendarEvent[], CalendarEvent[]] {
+  const eventsBeforeSlot = [];
+  const eventsInSlot = [];
+  const eventsAfterSlot = [];
+
+  for (const event of events) {
+    if (event.start.getTime() < slot.start.getTime()) {
+      eventsBeforeSlot.push(event);
+    } else if (event.start.getTime() >= slot.start.getTime() && event.start.getTime() < slot.end.getTime()) {
+      eventsInSlot.push(event);
+    } else {
+      eventsAfterSlot.push(event);
+    }
+  }
+  return [eventsBeforeSlot, eventsInSlot, eventsAfterSlot];
 }
 
 export function reduceEventsToDaySlots(date: Date, events: CalendarEvent[]): CalendarSlot[] {
   const daySlotsTimes = getDaySlotsTimes(date);
   const dayEvents = getEventsForDay(date, events);
+  const sortedDayEvents = [...dayEvents].sort((a, b) => b.start.getTime() - a.start.getTime());
   const daySlots: CalendarSlot[] = [];
   daySlotsTimes.forEach(slotTimes => {
-    const slotEvents = getCalendarEventsForSlot(slotTimes, dayEvents);
-    const numberOfRowsBeforeSlot = getEventsOverlappingWithSlotFromBefore(slotTimes, dayEvents).length;
-    const numberOfRowAfterSlot = getEventsOverlappingWithSlotFromAfter(slotEvents, dayEvents).length;
-    console.log(slotEvents, numberOfRowsBeforeSlot, numberOfRowAfterSlot);
+    const [eventsBefore, slotEvents, eventsAfter] = splitEventsBySlot(sortedDayEvents, slotTimes);
+    const numberOfRowsBeforeSlot = getNumberOfEventsOverlappingWithSlotFromBefore(slotTimes, eventsBefore);
+    const numberOfRowAfterSlot = getNumberOfEventsOverlappingWithSlotFromAfter(slotTimes, slotEvents, eventsAfter);
     daySlots.push({
       start: slotTimes.start,
       end: slotTimes.end,
