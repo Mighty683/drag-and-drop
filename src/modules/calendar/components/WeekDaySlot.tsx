@@ -1,76 +1,26 @@
 import './WeekDaySlot.scss'
-
-import { useEffect, useRef } from 'react';
-import { CALENDAR_EVENT_DATE_TYPE, } from '../constants';
-import { formatSlotDate, getEventEndIfStartInSlot, parseEventJSON } from '../helpers';
-import { CalendarEvent, CalendarEventOperations, CalendarSlot } from '../types';
-import { useCalendarStore } from '../store/store';
-import { throttle } from 'lodash';
+import { formatSlotDate} from '../helpers';
+import { CalendarSlot } from '../types';
 import { EventTile } from './Events/EventTile';
+import { useDroppable } from '@dnd-kit/core';
 
 export type WeekDaySlotProps = {
   slot: CalendarSlot
 };
 export function WeekDaySlot({ slot }: WeekDaySlotProps) {
-  const { removeEvent, editEvent, addEvent, addOrEditEvent } = useCalendarStore();
-  const ref = useRef<HTMLDivElement>(null);
+  const droppable = useDroppable({
+    id: `droppable-${slot.start.getTime()}`,
+    data: slot,
+  });
 
-
-  useEffect(() => {
-    const node = ref.current;
-    const listenerDragEnter = throttle((dragEvent: DragEvent) => {
-      dragEvent.preventDefault();
-      const event: CalendarEvent | undefined = parseEventJSON(dragEvent.dataTransfer?.getData(CALENDAR_EVENT_DATE_TYPE) || '{}');
-
-      if (!event || slot.rows?.find(slotRow => slotRow.event?.id === event.id)) return;
-      addOrEditEvent(`${event.id}-dragging`, {
-        ...event,
-        id: `${event.id}-dragging`,
-        start: slot.start,
-        operation: CalendarEventOperations.dragging,
-        end: getEventEndIfStartInSlot(event, slot),
-      });
-    }, 50);
-
-    const listenerDragDrop = (dragEvent: DragEvent) => {
-      dragEvent.preventDefault();
-      const event: CalendarEvent | undefined = parseEventJSON(dragEvent.dataTransfer?.getData(CALENDAR_EVENT_DATE_TYPE) || '{}');
-
-      if (!event || slot.rows?.find(slotRow => slotRow.event?.id === event.id)) {
-        return;
-      }
-
-      removeEvent(event.id);
-      editEvent(`${event.id}-dragging`, {
-        ...event,
-        start: slot.start,
-        id: event.id,
-        end: getEventEndIfStartInSlot(event, slot),
-        operation: CalendarEventOperations.none,
-      });
-    };
-
-    const listenerDragOver = (dragEvent: DragEvent) => {
-      dragEvent.preventDefault();
-    };
-
-    node?.addEventListener('dragenter', listenerDragEnter);
-    node?.addEventListener('drop', listenerDragDrop);
-    node?.addEventListener('dragover', listenerDragOver);
-
-    return () => {
-      node?.removeEventListener('dragenter', listenerDragEnter);
-      node?.removeEventListener('drop', listenerDragDrop);
-      node?.removeEventListener('dragover', listenerDragOver);
-    }
-  }, [addEvent, addOrEditEvent, editEvent, removeEvent, slot, slot.start])
-
-  return <div ref={ref} className='week-day-slot'>
+  return <div ref={droppable.setNodeRef} className='week-day-slot' style={{
+    backgroundColor: droppable.isOver ? '#aaa' : 'transparent',
+  }}>
     {formatSlotDate(slot)}
     <div className="week-day-slot__events-rows">
       {slot.rows?.map((slotRow) => {
         const event = slotRow.event;
-        if (!event) return <div className='week-day-slot__empty-row'></div>;
+        if (!event) return <div key={slotRow.id} className='week-day-slot__empty-row'></div>;
         return <EventTile key={event.id} event={event} />
       })}
     </div>

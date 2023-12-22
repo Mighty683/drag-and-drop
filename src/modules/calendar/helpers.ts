@@ -1,5 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import { CalendarEvent, CalendarSlot, CalendarSlotRow, CalendarSlotTime } from "./types";
+import { CalendarEvent, CalendarSlot, CalendarSlotTime } from "./types";
 import { v4 } from "uuid";
 
 import { format } from "date-fns/format";
@@ -57,26 +56,26 @@ export function getCalendarEventsForSlot(slot: CalendarSlotTime, events: Calenda
 export function createMockEvents(): CalendarEvent[] {
   const now = new Date();
   const event1: CalendarEvent = {
-    start: new Date(now.getTime() + 1000 * 60 * 60 * 2),
-    end: new Date(now.getTime() + 1000 * 60 * 60 * 3),
+    start: new Date(now.getTime() - 1000 * 60 * 60 * 3),
+    end: new Date(now.getTime() - 1000 * 60 * 60 * 2),
     title: "Event 1",
     id: v4(),
   };
   const event2: CalendarEvent = {
-    start: new Date(now.getTime() + 1000 * 60 * 60 * 4),
-    end: new Date(now.getTime() + 1000 * 60 * 60 * 5),
+    start: new Date(now.getTime() - 1000 * 60 * 60 * 5),
+    end: new Date(now.getTime() - 1000 * 60 * 60 * 4),
     title: "Event 2",
     id: v4(),
   };
   const event3: CalendarEvent = {
-    start: new Date(now.getTime() + 1000 * 60 * 60 * 6),
-    end: new Date(now.getTime() + 1000 * 60 * 60 * 7),
+    start: new Date(now.getTime() - 1000 * 60 * 60 * 7),
+    end: new Date(now.getTime() - 1000 * 60 * 60 * 6),
     title: "Event 3",
     id: v4(),
   };
   const event4: CalendarEvent = {
-    start: new Date(now.getTime() + 1000 * 60 * 60 * 6),
-    end: new Date(now.getTime() + 1000 * 60 * 60 * 7),
+    start: new Date(now.getTime() - 1000 * 60 * 60 * 7),
+    end: new Date(now.getTime() - 1000 * 60 * 60 * 6),
     title: "Event 4",
     id: v4(),
   };
@@ -123,10 +122,20 @@ export function getEventsOverlappingWithSlotFromBefore(
   slot: CalendarSlotTime,
   events: CalendarEvent[]
 ): CalendarEvent[] {
-  return events.filter(event => {
-    const eventOverlap = event.start.getTime() < slot.start.getTime() && event.end.getTime() > slot.start.getTime();
-    return eventOverlap;
-  });
+  return events
+    .filter(event => {
+      const eventOverlap = event.start.getTime() < slot.start.getTime() && event.end.getTime() > slot.start.getTime();
+      return eventOverlap;
+    })
+    .reduce<CalendarEvent[]>((accumulator, predecessorEvent) => {
+      const eventsOverlappingWithPredecessor = getEventsOverlappingWithSlotFromBefore(predecessorEvent, accumulator);
+      if (eventsOverlappingWithPredecessor.length > 0) {
+        return accumulator.concat(eventsOverlappingWithPredecessor);
+      } else {
+        accumulator.push(predecessorEvent);
+        return accumulator;
+      }
+    }, []);
 }
 
 export function getEventsOverlappingWithSlotFromAfter(
@@ -137,15 +146,25 @@ export function getEventsOverlappingWithSlotFromAfter(
   if (!longestSlotEvent) {
     return [];
   }
-  return events.filter(event => {
-    if (event === longestSlotEvent) {
-      return false;
-    }
-    const eventOverlapWithLongestEvent =
-      event.start.getTime() > longestSlotEvent.start.getTime() &&
-      event.start.getTime() < longestSlotEvent.end.getTime();
-    return eventOverlapWithLongestEvent;
-  });
+  return events
+    .filter(event => {
+      if (event === longestSlotEvent) {
+        return false;
+      }
+      const eventOverlapWithLongestEvent =
+        event.start.getTime() > longestSlotEvent.start.getTime() &&
+        event.start.getTime() < longestSlotEvent.end.getTime();
+      return eventOverlapWithLongestEvent;
+    })
+    .reduce<CalendarEvent[]>((accumulator, successorEvent) => {
+      const eventsOverlappingWithSuccessor = getEventsOverlappingWithSlotFromAfter([successorEvent], accumulator);
+      if (eventsOverlappingWithSuccessor.length > 0) {
+        return accumulator.concat(eventsOverlappingWithSuccessor);
+      } else {
+        accumulator.push(successorEvent);
+        return accumulator;
+      }
+    }, []);
 }
 
 export function reduceEventsToDaySlots(date: Date, events: CalendarEvent[]): CalendarSlot[] {
@@ -156,13 +175,18 @@ export function reduceEventsToDaySlots(date: Date, events: CalendarEvent[]): Cal
     const slotEvents = getCalendarEventsForSlot(slotTimes, dayEvents);
     const numberOfRowsBeforeSlot = getEventsOverlappingWithSlotFromBefore(slotTimes, dayEvents).length;
     const numberOfRowAfterSlot = getEventsOverlappingWithSlotFromAfter(slotEvents, dayEvents).length;
+    console.log(slotEvents, numberOfRowsBeforeSlot, numberOfRowAfterSlot);
     daySlots.push({
       start: slotTimes.start,
       end: slotTimes.end,
       rows: [
-        ...Array<CalendarSlotRow>(numberOfRowsBeforeSlot).fill({}),
-        ...slotEvents.map(event => ({ event })),
-        ...Array<CalendarSlotRow>(numberOfRowAfterSlot).fill({}),
+        ...Array(numberOfRowsBeforeSlot)
+          .fill(null)
+          .map(() => ({ id: v4() })),
+        ...slotEvents.map(event => ({ event, id: v4() })),
+        ...Array(numberOfRowAfterSlot)
+          .fill(null)
+          .map(() => ({ id: v4() })),
       ],
     });
   });

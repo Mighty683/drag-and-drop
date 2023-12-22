@@ -18,6 +18,7 @@ export type CalendarSlot = CalendarSlotTime & {
 };
 
 export type CalendarSlotRow = {
+  id: string;
   event?: CalendarEvent;
 };
 
