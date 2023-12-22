@@ -128,9 +128,9 @@ export function getEventsOverlappingWithSlotFromBefore(
       return eventOverlap;
     })
     .reduce<CalendarEvent[]>((accumulator, predecessorEvent) => {
-      const eventsOverlappingWithPredecessor = getEventsOverlappingWithSlotFromBefore(predecessorEvent, accumulator);
+      const eventsOverlappingWithPredecessor = getEventsOverlappingWithSlotFromBefore(predecessorEvent, events);
       if (eventsOverlappingWithPredecessor.length > 0) {
-        return accumulator.concat(eventsOverlappingWithPredecessor);
+        return accumulator.concat(eventsOverlappingWithPredecessor, [predecessorEvent]);
       } else {
         accumulator.push(predecessorEvent);
         return accumulator;
@@ -157,9 +157,9 @@ export function getEventsOverlappingWithSlotFromAfter(
       return eventOverlapWithLongestEvent;
     })
     .reduce<CalendarEvent[]>((accumulator, successorEvent) => {
-      const eventsOverlappingWithSuccessor = getEventsOverlappingWithSlotFromAfter([successorEvent], accumulator);
+      const eventsOverlappingWithSuccessor = getEventsOverlappingWithSlotFromAfter([successorEvent], events);
       if (eventsOverlappingWithSuccessor.length > 0) {
-        return accumulator.concat(eventsOverlappingWithSuccessor);
+        return accumulator.concat(eventsOverlappingWithSuccessor, [successorEvent]);
       } else {
         accumulator.push(successorEvent);
         return accumulator;
