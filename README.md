@@ -6,5 +6,4 @@
 # TODO:
 
 - Reduce complexity of slots building to linear?
-- Can we make it work without sorting?
-  - What if we store data about range in node?
+  - Can we make it work without sorting?
