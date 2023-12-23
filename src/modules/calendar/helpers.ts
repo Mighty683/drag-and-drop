@@ -10,8 +10,14 @@ import {
 import { v4 } from "uuid";
 
 import { format } from "date-fns/format";
-import { GRID_CELL_DURATION, renderVirtualGridFromNode } from "./modules/virtualGrid/helpers";
-import { findSlotNode, getCalendarLinkedEventsNodes } from "./modules/linkingEvents/helpers";
+import {
+  GRID_CELL_DURATION,
+  renderVirtualGridFromNode,
+} from "./modules/virtualGrid/helpers";
+import {
+  findSlotNode,
+  getCalendarLinkedEventsNodes,
+} from "./modules/linkingEvents/helpers";
 
 export function getDateWeekDays(date: Date) {
   const days: Date[] = [];
@@ -46,36 +52,83 @@ export function formatSlotDate(date: CalendarSlot) {
 }
 
 export function getEventRequiredSlotsNumber(event: CalendarEvent) {
-  return Math.floor((event.end.getTime() - event.start.getTime()) / GRID_CELL_DURATION);
+  return Math.floor(
+    (event.end.getTime() - event.start.getTime()) / GRID_CELL_DURATION,
+  );
 }
 
-export function getEventEndIfStartInSlot(event: CalendarEvent, slot: CalendarSlot) {
-  return new Date(slot.start.getTime() + (event.end.getTime() - event.start.getTime()));
+export function getEventEndIfStartInSlot(
+  event: CalendarEvent,
+  slot: CalendarSlot,
+) {
+  return new Date(
+    slot.start.getTime() + (event.end.getTime() - event.start.getTime()),
+  );
 }
 
 export function createMockEvents(): CalendarEvent[] {
   const now = new Date();
   const event1: CalendarEvent = {
-    start: new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0),
+    start: new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+      0,
+      0,
+      0,
+      0,
+    ),
     end: new Date(now.getFullYear(), now.getMonth(), now.getDate(), 1, 0, 0, 0),
     title: "Event 1",
     id: v4(),
   };
   const event2: CalendarEvent = {
-    start: new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0),
+    start: new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+      0,
+      0,
+      0,
+      0,
+    ),
     end: new Date(now.getFullYear(), now.getMonth(), now.getDate(), 1, 0, 0, 0),
     title: "Event 2",
     id: v4(),
   };
   const event3: CalendarEvent = {
-    start: new Date(now.getFullYear(), now.getMonth(), now.getDate(), 2, 0, 0, 0),
+    start: new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+      2,
+      0,
+      0,
+      0,
+    ),
     end: new Date(now.getFullYear(), now.getMonth(), now.getDate(), 4, 0, 0, 0),
     title: "Event 3",
     id: v4(),
   };
   const event4: CalendarEvent = {
-    start: new Date(now.getFullYear(), now.getMonth(), now.getDate(), 5, 0, 0, 0),
-    end: new Date(now.getFullYear(), now.getMonth(), now.getDate(), 5, 30, 0, 0),
+    start: new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+      5,
+      0,
+      0,
+      0,
+    ),
+    end: new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+      5,
+      30,
+      0,
+      0,
+    ),
     title: "Event 4",
     id: v4(),
   };
@@ -99,37 +152,51 @@ export function getEventDuration(event: CalendarEvent) {
   return event.end.getTime() - event.start.getTime();
 }
 
-export function getLongestEvent(events: CalendarEvent[]): CalendarEvent | undefined {
+export function getLongestEvent(
+  events: CalendarEvent[],
+): CalendarEvent | undefined {
   return events.reduce<CalendarEvent | undefined>((prev, current) => {
     if (!prev) {
       return current;
     }
-    if (getEventDuration(current) > getEventDuration(current)) {
+    if (getEventDuration(prev) > getEventDuration(current)) {
       return current;
     }
     return prev;
   }, undefined);
 }
 
-export function getEventsForDay(date: Date, events: CalendarEvent[]): CalendarEvent[] {
+export function getEventsForDay(
+  date: Date,
+  events: CalendarEvent[],
+): CalendarEvent[] {
   const dayStart = new Date(date);
   dayStart.setHours(0, 0, 0, 0);
   const dayEnd = new Date(dayStart.getTime() + 1000 * 60 * 60 * 24);
-  return events.filter(event => event.start.getTime() >= dayStart.getTime() && event.end.getTime() < dayEnd.getTime());
+  return events.filter(
+    (event) =>
+      event.start.getTime() >= dayStart.getTime() &&
+      event.end.getTime() < dayEnd.getTime(),
+  );
 }
 
-export function reduceEventsToDaySlots(date: Date, events: CalendarEvent[]): CalendarSlot[] {
+export function reduceEventsToDaySlots(
+  date: Date,
+  events: CalendarEvent[],
+): CalendarSlot[] {
   const daySlotsTimes = getDaySlotsTimes(date);
   const dayEvents = getEventsForDay(date, events);
   const eventsNodes = getCalendarLinkedEventsNodes(dayEvents);
-  const daySlots: CalendarSlot[] = daySlotsTimes.map(slot => getCalendarSlot(slot, eventsNodes));
+  const daySlots: CalendarSlot[] = daySlotsTimes.map((slot) =>
+    getCalendarSlot(slot, eventsNodes),
+  );
 
   return daySlots;
 }
 
 export function getCalendarSlot(
   slotTimes: CalendarSlotTime,
-  eventsNodes: LinkedEventsNode<CalendarEvent>[]
+  eventsNodes: LinkedEventsNode<CalendarEvent>[],
 ): CalendarSlot {
   const slotNode = findSlotNode(slotTimes, eventsNodes);
   if (!slotNode) {
@@ -151,12 +218,14 @@ export function getCalendarSlot(
 
 export function reduceGridToSlotColumns(
   slotTimes: CalendarSlotTime,
-  grid: CalendarNodeVirtualGrid
+  grid: CalendarNodeVirtualGrid,
 ): CalendarSlotColumn[] {
-  const slotEvents = grid.cells.filter(cell => isEventInSlot(cell.event, slotTimes));
+  const slotEvents = grid.cells.filter((cell) =>
+    isEventInSlot(cell.event, slotTimes),
+  );
   const slotColumns: CalendarSlotColumn[] = [];
   for (let columnIndex = 0; columnIndex < grid.widthX; columnIndex++) {
-    const eventForColumn = slotEvents.find(cell => cell.x === columnIndex);
+    const eventForColumn = slotEvents.find((cell) => cell.x === columnIndex);
     if (eventForColumn) {
       slotColumns.push({
         id: eventForColumn.event.id,
@@ -177,7 +246,7 @@ export function reduceGridToSlotColumns(
 
 export function splitEventsBySlot(
   slotTimes: CalendarSlotTime,
-  events: CalendarEvent[]
+  events: CalendarEvent[],
 ): [CalendarEvent[], CalendarEvent[], CalendarEvent[]] {
   return events.reduce<[CalendarEvent[], CalendarEvent[], CalendarEvent[]]>(
     (accumulators, event) => {
@@ -185,7 +254,10 @@ export function splitEventsBySlot(
         accumulators[0].push(event);
         return accumulators;
       }
-      if (event.start.getTime() >= slotTimes.start.getTime() && event.start.getTime() < slotTimes.end.getTime()) {
+      if (
+        event.start.getTime() >= slotTimes.start.getTime() &&
+        event.start.getTime() < slotTimes.end.getTime()
+      ) {
         accumulators[1].push(event);
         return accumulators;
       }
@@ -193,10 +265,27 @@ export function splitEventsBySlot(
       accumulators[2].push(event);
       return accumulators;
     },
-    [[], [], []]
+    [[], [], []],
   );
 }
 
 export function isEventInSlot(event: TimeEvent, slot: CalendarSlotTime) {
-  return event.start.getTime() >= slot.start.getTime() && event.start.getTime() < slot.end.getTime();
+  return (
+    event.start.getTime() >= slot.start.getTime() &&
+    event.start.getTime() < slot.end.getTime()
+  );
+}
+
+export function compareEventsByStartTimeAscending(
+  a: CalendarEvent,
+  b: CalendarEvent,
+) {
+  return a.start.getTime() - b.start.getTime();
+}
+
+export function compareEventsByDurationDescending(
+  b: CalendarEvent,
+  a: CalendarEvent,
+) {
+  return b.end.getTime() - a.end.getTime();
 }

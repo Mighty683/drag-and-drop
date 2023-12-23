@@ -7,12 +7,14 @@ import { useState } from "react";
 import { EventTile } from "./Events/EventTile";
 
 export function Calendar() {
-  const eventsAPI = useCalendarStore(state => ({
+  const eventsAPI = useCalendarStore((state) => ({
     editEvent: state.editEvent,
     removeEvent: state.removeEvent,
     setIsAnyEventDragging: state.setIsAnyEventDragging,
   }));
-  const [draggedEvent, setDraggedEvent] = useState<CalendarEvent | undefined>(undefined);
+  const [draggedEvent, setDraggedEvent] = useState<CalendarEvent | undefined>(
+    undefined,
+  );
 
   return (
     <DndContext
@@ -23,7 +25,7 @@ export function Calendar() {
           operation: CalendarEventOperations.dragged,
         });
         eventsAPI.setIsAnyEventDragging(true);
-        setDraggedEvent(event)
+        setDraggedEvent(event);
       }}
       onDragEnd={(props) => {
         const event = props.active.data.current as CalendarEvent;
@@ -46,11 +48,17 @@ export function Calendar() {
     >
       <WeekView />
       <DragOverlay>
-        {draggedEvent && <EventTile event={{
-          ...draggedEvent,
-          operation: CalendarEventOperations.dragging,
-        }} className='event-tile--dragged' disableDrag={true} />}
+        {draggedEvent && (
+          <EventTile
+            event={{
+              ...draggedEvent,
+              operation: CalendarEventOperations.dragging,
+            }}
+            className="event-tile--dragged"
+            disableDrag={true}
+          />
+        )}
       </DragOverlay>
     </DndContext>
-  )
+  );
 }

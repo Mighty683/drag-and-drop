@@ -12,7 +12,9 @@ import {
 
 export const GRID_CELL_DURATION = 1000 * 60 * 30;
 
-export function renderVirtualGridFromNode(node: LinkedEventsNode<CalendarEvent>): CalendarNodeVirtualGrid {
+export function renderVirtualGridFromNode(
+  node: LinkedEventsNode<CalendarEvent>,
+): CalendarNodeVirtualGrid {
   const nodeEvents = node.events ?? [];
   let gridWidthX = 0;
   let gridHeightY = 0;
@@ -30,8 +32,14 @@ export function renderVirtualGridFromNode(node: LinkedEventsNode<CalendarEvent>)
       let bestFittedEventPositionX: number = 0;
       let bestFittedEventPositionY: number = 0;
       for (let rowIndex = 0; rowIndex < gridHeightY; rowIndex++) {
-        const newEventPositionY = calculateElementPositionYInGrid(processedEvent, cells);
-        const newEventPositionX = calculateElementPositionXInGrid(processedEvent, cells);
+        const newEventPositionY = calculateElementPositionYInGrid(
+          processedEvent,
+          cells,
+        );
+        const newEventPositionX = calculateElementPositionXInGrid(
+          processedEvent,
+          cells,
+        );
         bestFittedEventPositionY = newEventPositionY;
         if (rowIndex === 0 || newEventPositionX <= bestFittedEventPositionX) {
           bestFittedEventPositionX = newEventPositionX;
@@ -63,17 +71,21 @@ export function renderVirtualGridFromNode(node: LinkedEventsNode<CalendarEvent>)
 
 export function calculateElementPositionYInGrid(
   event: CalendarEvent,
-  currentCells: CalendarNodeVirtualGridCell[]
+  currentCells: CalendarNodeVirtualGridCell[],
 ): number {
-  const eventsFinishedBefore = currentCells.filter(cell => isEventFinishedBeforeSnappedToGrid(cell.event, event));
+  const eventsFinishedBefore = currentCells.filter((cell) =>
+    isEventFinishedBeforeSnappedToGrid(cell.event, event),
+  );
   return eventsFinishedBefore.length;
 }
 
 export function calculateElementPositionXInGrid(
   event: CalendarEvent,
-  currentCells: CalendarNodeVirtualGridCell[]
+  currentCells: CalendarNodeVirtualGridCell[],
 ): number {
-  const collidingCells = currentCells.filter(collidingEvent => areEventsOverlappingInGrid(collidingEvent.event, event));
+  const collidingCells = currentCells.filter((collidingEvent) =>
+    areEventsOverlappingInGrid(collidingEvent.event, event),
+  );
   const firstCollidingCell = collidingCells[0];
   if (!firstCollidingCell) {
     return 0;
@@ -89,12 +101,14 @@ export function calculateElementPositionXInGrid(
 
 export function reduceGridToSlotColumns(
   slotTimes: CalendarSlotTime,
-  grid: CalendarNodeVirtualGrid
+  grid: CalendarNodeVirtualGrid,
 ): CalendarSlotColumn[] {
-  const slotEvents = grid.cells.filter(cell => isEventInSlot(cell.event, slotTimes));
+  const slotEvents = grid.cells.filter((cell) =>
+    isEventInSlot(cell.event, slotTimes),
+  );
   const slotColumns: CalendarSlotColumn[] = [];
   for (let columnIndex = 0; columnIndex < grid.widthX; columnIndex++) {
-    const eventForColumn = slotEvents.find(cell => cell.x === columnIndex);
+    const eventForColumn = slotEvents.find((cell) => cell.x === columnIndex);
     if (eventForColumn) {
       slotColumns.push({
         id: eventForColumn.event.id,
@@ -113,17 +127,35 @@ export function reduceGridToSlotColumns(
   return slotColumns;
 }
 
-export function isEventFinishedBeforeSnappedToGrid(eventA: TimeEvent, eventB: TimeEvent) {
-  const eventAEndSnappedToGrid = new Date(eventA.end.getTime() + (eventA.end.getTime() % GRID_CELL_DURATION));
-  const eventBStartSnappedToGrid = new Date(eventB.start.getTime() - (eventB.start.getTime() % GRID_CELL_DURATION));
+export function isEventFinishedBeforeSnappedToGrid(
+  eventA: TimeEvent,
+  eventB: TimeEvent,
+) {
+  const eventAEndSnappedToGrid = new Date(
+    eventA.end.getTime() + (eventA.end.getTime() % GRID_CELL_DURATION),
+  );
+  const eventBStartSnappedToGrid = new Date(
+    eventB.start.getTime() - (eventB.start.getTime() % GRID_CELL_DURATION),
+  );
   return eventAEndSnappedToGrid.getTime() <= eventBStartSnappedToGrid.getTime();
 }
 
-export function areEventsOverlappingInGrid(eventA: TimeEvent, eventB: TimeEvent) {
-  const eventAStartSnappedToGrid = new Date(eventA.start.getTime() - (eventA.start.getTime() % GRID_CELL_DURATION));
-  const eventAEndSnappedToGrid = new Date(eventA.end.getTime() + (eventA.end.getTime() % GRID_CELL_DURATION));
-  const eventBStartSnappedToGrid = new Date(eventB.start.getTime() - (eventB.start.getTime() % GRID_CELL_DURATION));
-  const eventBEndSnappedToGrid = new Date(eventB.end.getTime() + (eventB.end.getTime() % GRID_CELL_DURATION));
+export function areEventsOverlappingInGrid(
+  eventA: TimeEvent,
+  eventB: TimeEvent,
+) {
+  const eventAStartSnappedToGrid = new Date(
+    eventA.start.getTime() - (eventA.start.getTime() % GRID_CELL_DURATION),
+  );
+  const eventAEndSnappedToGrid = new Date(
+    eventA.end.getTime() + (eventA.end.getTime() % GRID_CELL_DURATION),
+  );
+  const eventBStartSnappedToGrid = new Date(
+    eventB.start.getTime() - (eventB.start.getTime() % GRID_CELL_DURATION),
+  );
+  const eventBEndSnappedToGrid = new Date(
+    eventB.end.getTime() + (eventB.end.getTime() % GRID_CELL_DURATION),
+  );
   return (
     (eventAStartSnappedToGrid.getTime() >= eventBStartSnappedToGrid.getTime() &&
       eventAStartSnappedToGrid.getTime() < eventBEndSnappedToGrid.getTime()) ||

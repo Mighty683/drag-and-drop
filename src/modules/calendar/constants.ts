@@ -1,5 +1,26 @@
-export const WeekDays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-export const MonthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+export const WeekDays = [
+  "Sunday",
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+];
+export const MonthNames = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
 export const WeekDaysMap = {
   0: "Sunday",
   1: "Monday",
@@ -7,8 +28,8 @@ export const WeekDaysMap = {
   3: "Wednesday",
   4: "Thursday",
   5: "Friday",
-  6: "Saturday"
-}
+  6: "Saturday",
+};
 export const MonthNamesMap = {
   0: "January",
   1: "February",
@@ -21,9 +42,9 @@ export const MonthNamesMap = {
   8: "September",
   9: "October",
   10: "November",
-  11: "December"
+  11: "December",
 };
 
 export const SLOT_HEIGHT = 50;
 
-export const CALENDAR_EVENT_DATE_TYPE = 'calendar-input';
+export const CALENDAR_EVENT_DATE_TYPE = "calendar-input";

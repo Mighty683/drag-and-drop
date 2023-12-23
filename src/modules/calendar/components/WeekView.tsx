@@ -4,10 +4,10 @@ import { useMemo } from "react";
 import { useCalendarStore } from "../store/store";
 import { getDateWeekDays } from "../helpers";
 
-import './WeekView.scss';
+import "./WeekView.scss";
 
 export function WeekView() {
-  const displayDate = useCalendarStore(state => state.displayDate);
+  const displayDate = useCalendarStore((state) => state.displayDate);
   const weekDays = useMemo(() => getDateWeekDays(displayDate), [displayDate]);
 
   return (
@@ -19,5 +19,5 @@ export function WeekView() {
         ))}
       </div>
     </div>
-  )
+  );
 }
