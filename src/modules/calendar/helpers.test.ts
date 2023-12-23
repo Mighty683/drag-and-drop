@@ -1,12 +1,7 @@
 import { describe, it, expect } from "vitest";
-import {
-  getDateWeekDays,
-  getDaySlotsTimes,
-  getCalendarSlot,
-  getCalendarLinkedEventsNodes,
-  createMockEvents,
-} from "./helpers";
+import { getDateWeekDays, getDaySlotsTimes, getCalendarSlot, createMockEvents } from "./helpers";
 import { CalendarEvent, CalendarSlotTime } from "./types";
+import { getCalendarLinkedEventsNodes } from "./modules/linkingEvents/helpers";
 
 describe("calendar helpers", () => {
   describe("getDateWeekDays", () => {
