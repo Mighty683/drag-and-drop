@@ -1,6 +1,9 @@
-export type CalendarEvent = {
+export type TimeEvent = {
   start: Date;
   end: Date;
+};
+
+export type CalendarEvent = TimeEvent & {
   title: string;
   operation?: CalendarEventOperations;
   id: CalendarEventId;
@@ -8,10 +11,7 @@ export type CalendarEvent = {
 
 export type CalendarEventId = string;
 
-export type CalendarSlotTime = {
-  start: Date;
-  end: Date;
-};
+export type CalendarSlotTime = TimeEvent;
 
 export type CalendarSlot = CalendarSlotTime & {
   rows: CalendarSlotRow[];
@@ -44,4 +44,9 @@ export type CalendarStore = {
   addOrEditEvent: (id: string, data: CalendarEvent) => void;
   isAnyEventDragging: boolean;
   setIsAnyEventDragging: (isDragging: boolean) => void;
+};
+
+export type EventTimeTreeNode<E extends TimeEvent = TimeEvent> = {
+  event?: E;
+  children: EventTimeTreeNode<E>[];
 };
