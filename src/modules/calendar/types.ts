@@ -14,13 +14,20 @@ export type CalendarEventId = string;
 export type CalendarSlotTime = TimeEvent;
 
 export type CalendarSlot = CalendarSlotTime & {
-  rows: CalendarSlotRow[];
+  columns: CalendarSlotColumn[];
 };
 
-export type CalendarSlotRow = {
-  id: string;
-  event?: CalendarEvent;
-};
+export type CalendarSlotColumn =
+  | {
+      id: string;
+      event: CalendarEvent;
+      inScopeOfSlot: true;
+    }
+  | {
+      id: string;
+      event: undefined;
+      inScopeOfSlot: false;
+    };
 
 export enum CalendarEventOperations {
   dragging = "dragging",
@@ -48,4 +55,16 @@ export type CalendarStore = {
 
 export type LinkedEventsNode<E extends TimeEvent = TimeEvent> = TimeEvent & {
   events?: E[];
+};
+
+export type CalendarNodeVirtualGrid = {
+  widthX: number;
+  heightY: number;
+  cells: CalendarNodeVirtualGridCell[];
+};
+
+export type CalendarNodeVirtualGridCell = {
+  event: CalendarEvent;
+  x: number;
+  y: number;
 };

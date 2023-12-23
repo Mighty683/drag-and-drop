@@ -5,6 +5,7 @@ import {
   getCalendarSlot,
   getCalendarLinkedEventsNodes,
   createMockEvents,
+  renderVirtualGridFromNode,
 } from "./helpers";
 import { CalendarEvent, CalendarSlotTime } from "./types";
 
@@ -33,6 +34,7 @@ describe("calendar helpers", () => {
       expect(slots[47].start.getMinutes()).toBe(30);
     });
   });
+
   describe("getCalendarSlot", () => {
     describe("cases before slot", () => {
       const testSlot: CalendarSlotTime = {
@@ -52,7 +54,7 @@ describe("calendar helpers", () => {
           title: "Event 2",
           id: "2",
         };
-        expect(getCalendarSlot(testSlot, getCalendarLinkedEventsNodes([event1, event2])).rows.length).toBe(2);
+        expect(getCalendarSlot(testSlot, getCalendarLinkedEventsNodes([event1, event2])).columns.length).toBe(2);
       });
 
       it("should not return the event which ended before slot", () => {
@@ -68,7 +70,7 @@ describe("calendar helpers", () => {
           title: "Event 2",
           id: "2",
         };
-        expect(getCalendarSlot(testSlot, getCalendarLinkedEventsNodes([event1, event2])).rows.length).toBe(1);
+        expect(getCalendarSlot(testSlot, getCalendarLinkedEventsNodes([event1, event2])).columns.length).toBe(1);
       });
     });
     describe("cases after slot", () => {
@@ -89,7 +91,7 @@ describe("calendar helpers", () => {
           title: "Event 2",
           id: "2",
         };
-        expect(getCalendarSlot(testSlot, getCalendarLinkedEventsNodes([event1, event2])).rows.length).toBe(2);
+        expect(getCalendarSlot(testSlot, getCalendarLinkedEventsNodes([event1, event2])).columns.length).toBe(2);
       });
       it("should not return the event which ended after longest slot event", () => {
         const event1: CalendarEvent = {
@@ -104,7 +106,7 @@ describe("calendar helpers", () => {
           title: "Event 2",
           id: "2",
         };
-        expect(getCalendarSlot(testSlot, getCalendarLinkedEventsNodes([event1, event2])).rows.length).toBe(1);
+        expect(getCalendarSlot(testSlot, getCalendarLinkedEventsNodes([event1, event2])).columns.length).toBe(1);
       });
       it("should not return the event which ended before longest slot event", () => {
         const event1: CalendarEvent = {
@@ -119,7 +121,7 @@ describe("calendar helpers", () => {
           title: "Event 2",
           id: "2",
         };
-        expect(getCalendarSlot(testSlot, getCalendarLinkedEventsNodes([event1, event2])).rows.length).toBe(1);
+        expect(getCalendarSlot(testSlot, getCalendarLinkedEventsNodes([event1, event2])).columns.length).toBe(1);
       });
 
       it("should return events which are chained with overlapping", () => {
@@ -141,7 +143,10 @@ describe("calendar helpers", () => {
           title: "Event 3",
           id: "3",
         };
-        expect(getCalendarSlot(testSlot, getCalendarLinkedEventsNodes([event1, event2, event3])).rows.length).toBe(3);
+        const result = getCalendarSlot(testSlot, getCalendarLinkedEventsNodes([event1, event2, event3]));
+        expect(result.columns.length).toBe(2);
+        expect(result.columns[0].inScopeOfSlot).toBe(true);
+        expect(result.columns[1].inScopeOfSlot).toBe(false);
       });
       it("should find two events which are chained with overlapping", () => {
         const event1: CalendarEvent = {
@@ -162,7 +167,12 @@ describe("calendar helpers", () => {
           title: "Event 3",
           id: "3",
         };
-        expect(getCalendarSlot(testSlot, getCalendarLinkedEventsNodes([event1, event2, event3])).rows.length).toBe(3);
+
+        const result = getCalendarSlot(testSlot, getCalendarLinkedEventsNodes([event1, event2, event3]));
+        expect(result.columns.length).toBe(2);
+
+        expect(result.columns[0].inScopeOfSlot).toBe(true);
+        expect(result.columns[1].inScopeOfSlot).toBe(false);
       });
 
       it("should find element which extends over slot longest event", () => {
@@ -184,7 +194,11 @@ describe("calendar helpers", () => {
           title: "Event 3",
           id: "3",
         };
-        expect(getCalendarSlot(testSlot, getCalendarLinkedEventsNodes([event1, event2, event3])).rows.length).toBe(3);
+        const result = getCalendarSlot(testSlot, getCalendarLinkedEventsNodes([event1, event2, event3]));
+        expect(result.columns.length).toBe(2);
+        expect(result.columns[0].inScopeOfSlot).toBe(true);
+        expect(result.columns[1].inScopeOfSlot).toBe(true);
+        expect(result.columns[1].event).toBe(event2);
       });
 
       it("should find element which extends over slot longest event in different order", () => {
@@ -206,7 +220,11 @@ describe("calendar helpers", () => {
           title: "Event 3",
           id: "3",
         };
-        expect(getCalendarSlot(testSlot, getCalendarLinkedEventsNodes([event3, event2, event1])).rows.length).toBe(3);
+        const result = getCalendarSlot(testSlot, getCalendarLinkedEventsNodes([event1, event2, event3]));
+        expect(result.columns.length).toBe(2);
+        expect(result.columns[0].inScopeOfSlot).toBe(true);
+        expect(result.columns[1].inScopeOfSlot).toBe(true);
+        expect(result.columns[1].event).toBe(event2);
       });
     });
 
@@ -234,7 +252,9 @@ describe("calendar helpers", () => {
           title: "Event 3",
           id: "3",
         };
-        expect(getCalendarSlot(testSlot, getCalendarLinkedEventsNodes([event1, event2, event3])).rows.length).toBe(3);
+        expect(getCalendarSlot(testSlot, getCalendarLinkedEventsNodes([event1, event2, event3])).columns.length).toBe(
+          3
+        );
       });
 
       it("should work on mock data", () => {
@@ -246,9 +266,74 @@ describe("calendar helpers", () => {
               end: mockEvents[0].end,
             },
             getCalendarLinkedEventsNodes(mockEvents)
-          ).rows.length
+          ).columns.length
         ).toBe(2);
       });
+    });
+  });
+
+  describe("renderVirtualGridFromNode", () => {
+    it("should return the correct grid 2 elements case", () => {
+      const grid = renderVirtualGridFromNode({
+        start: new Date("2021-01-01 00:00"),
+        end: new Date("2021-01-01 01:30"),
+        events: [
+          {
+            start: new Date("2021-01-01 00:00"),
+            end: new Date("2021-01-01 01:00"),
+            title: "Event 1",
+            id: "1",
+          },
+          {
+            start: new Date("2021-01-01 00:30"),
+            end: new Date("2021-01-01 01:30"),
+            title: "Event 2",
+            id: "2",
+          },
+        ],
+      });
+
+      expect(grid.widthX).toBe(2);
+      expect(grid.heightY).toBe(1);
+      expect(grid.cells[0].x).toBe(0);
+      expect(grid.cells[0].y).toBe(0);
+      expect(grid.cells[1].x).toBe(1);
+      expect(grid.cells[1].y).toBe(0);
+    });
+    it("should return the correct grid 3 elements case", () => {
+      const grid = renderVirtualGridFromNode({
+        start: new Date("2021-01-01 00:00"),
+        end: new Date("2021-01-01 01:30"),
+        events: [
+          {
+            start: new Date("2021-01-01 00:00"),
+            end: new Date("2021-01-01 01:00"),
+            title: "Event 1",
+            id: "1",
+          },
+          {
+            start: new Date("2021-01-01 00:00"),
+            end: new Date("2021-01-01 00:30"),
+            title: "Event 2",
+            id: "2",
+          },
+          {
+            start: new Date("2021-01-01 00:30"),
+            end: new Date("2021-01-01 01:00"),
+            title: "Event 3",
+            id: "3",
+          },
+        ],
+      });
+
+      expect(grid.widthX).toBe(2);
+      expect(grid.heightY).toBe(2);
+      expect(grid.cells[0].x).toBe(0);
+      expect(grid.cells[0].y).toBe(0);
+      expect(grid.cells[1].x).toBe(1);
+      expect(grid.cells[1].y).toBe(0);
+      expect(grid.cells[2].x).toBe(1);
+      expect(grid.cells[2].y).toBe(1);
     });
   });
 });

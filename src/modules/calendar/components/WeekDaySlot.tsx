@@ -18,10 +18,9 @@ export function WeekDaySlot({ slot }: WeekDaySlotProps) {
   }}>
     {formatSlotDate(slot)}
     <div className="week-day-slot__events-rows">
-      {slot.rows?.map((slotRow) => {
-        const event = slotRow.event;
-        if (!event) return <div key={slotRow.id} className='week-day-slot__empty-row'></div>;
-        return <EventTile key={event.id} event={event} />
+      {slot.columns?.map((slotRow) => {
+        if (!slotRow.inScopeOfSlot) return <div key={slotRow.id} className='week-day-slot__empty-row'></div>;
+        return <EventTile key={slotRow.event.id} event={slotRow.event} />
       })}
     </div>
   </div>;
