@@ -107,9 +107,7 @@ export function getEventsForDay(date: Date, events: CalendarEvent[]): CalendarEv
   const dayStart = new Date(date);
   dayStart.setHours(0, 0, 0, 0);
   const dayEnd = new Date(dayStart.getTime() + 1000 * 60 * 60 * 24);
-  return events
-    .filter(event => event.start.getTime() >= dayStart.getTime() && event.end.getTime() < dayEnd.getTime())
-    .sort((a, b) => b.start.getTime() - a.start.getTime());
+  return events.filter(event => event.start.getTime() >= dayStart.getTime() && event.end.getTime() < dayEnd.getTime());
 }
 
 export function reduceEventsToDaySlots(date: Date, events: CalendarEvent[]): CalendarSlot[] {
