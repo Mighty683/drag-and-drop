@@ -5,7 +5,6 @@ import {
   getCalendarSlot,
   getCalendarLinkedEventsNodes,
   createMockEvents,
-  renderVirtualGridFromNode,
 } from "./helpers";
 import { CalendarEvent, CalendarSlotTime } from "./types";
 
@@ -54,7 +53,8 @@ describe("calendar helpers", () => {
           title: "Event 2",
           id: "2",
         };
-        expect(getCalendarSlot(testSlot, getCalendarLinkedEventsNodes([event1, event2])).columns.length).toBe(2);
+        const result = getCalendarSlot(testSlot, getCalendarLinkedEventsNodes([event1, event2]));
+        expect(result.columns.length).toBe(2);
       });
 
       it("should not return the event which ended before slot", () => {
@@ -269,71 +269,6 @@ describe("calendar helpers", () => {
           ).columns.length
         ).toBe(2);
       });
-    });
-  });
-
-  describe("renderVirtualGridFromNode", () => {
-    it("should return the correct grid 2 elements case", () => {
-      const grid = renderVirtualGridFromNode({
-        start: new Date("2021-01-01 00:00"),
-        end: new Date("2021-01-01 01:30"),
-        events: [
-          {
-            start: new Date("2021-01-01 00:00"),
-            end: new Date("2021-01-01 01:00"),
-            title: "Event 1",
-            id: "1",
-          },
-          {
-            start: new Date("2021-01-01 00:30"),
-            end: new Date("2021-01-01 01:30"),
-            title: "Event 2",
-            id: "2",
-          },
-        ],
-      });
-
-      expect(grid.widthX).toBe(2);
-      expect(grid.heightY).toBe(1);
-      expect(grid.cells[0].x).toBe(0);
-      expect(grid.cells[0].y).toBe(0);
-      expect(grid.cells[1].x).toBe(1);
-      expect(grid.cells[1].y).toBe(0);
-    });
-    it("should return the correct grid 3 elements case", () => {
-      const grid = renderVirtualGridFromNode({
-        start: new Date("2021-01-01 00:00"),
-        end: new Date("2021-01-01 01:30"),
-        events: [
-          {
-            start: new Date("2021-01-01 00:00"),
-            end: new Date("2021-01-01 01:00"),
-            title: "Event 1",
-            id: "1",
-          },
-          {
-            start: new Date("2021-01-01 00:00"),
-            end: new Date("2021-01-01 00:30"),
-            title: "Event 2",
-            id: "2",
-          },
-          {
-            start: new Date("2021-01-01 00:30"),
-            end: new Date("2021-01-01 01:00"),
-            title: "Event 3",
-            id: "3",
-          },
-        ],
-      });
-
-      expect(grid.widthX).toBe(2);
-      expect(grid.heightY).toBe(2);
-      expect(grid.cells[0].x).toBe(0);
-      expect(grid.cells[0].y).toBe(0);
-      expect(grid.cells[1].x).toBe(1);
-      expect(grid.cells[1].y).toBe(0);
-      expect(grid.cells[2].x).toBe(1);
-      expect(grid.cells[2].y).toBe(1);
     });
   });
 });

@@ -1,7 +1,6 @@
 import {
   CalendarEvent,
   CalendarNodeVirtualGrid,
-  CalendarNodeVirtualGridCell,
   CalendarSlot,
   CalendarSlotColumn,
   CalendarSlotTime,
@@ -11,9 +10,7 @@ import {
 import { v4 } from "uuid";
 
 import { format } from "date-fns/format";
-import { first } from "lodash";
-
-export const thirtyMinutes = 1000 * 60 * 30;
+import { GRID_CELL_DURATION, renderVirtualGridFromNode } from "./modules/virtualGrid/helpers";
 
 export function getDateWeekDays(date: Date) {
   const days: Date[] = [];
@@ -37,7 +34,7 @@ export function getDaySlotsTimes(date: Date) {
     newDate.setMinutes(start.getMinutes() + i * 30);
     slots.push({
       start: newDate,
-      end: new Date(newDate.getTime() + thirtyMinutes),
+      end: new Date(newDate.getTime() + GRID_CELL_DURATION),
     });
   }
   return slots;
@@ -48,7 +45,7 @@ export function formatSlotDate(date: CalendarSlot) {
 }
 
 export function getEventRequiredSlotsNumber(event: CalendarEvent) {
-  return Math.floor((event.end.getTime() - event.start.getTime()) / thirtyMinutes);
+  return Math.floor((event.end.getTime() - event.start.getTime()) / GRID_CELL_DURATION);
 }
 
 export function getEventEndIfStartInSlot(event: CalendarEvent, slot: CalendarSlot) {
@@ -151,61 +148,6 @@ export function getCalendarSlot(
   };
 }
 
-export function renderVirtualGridFromNode(node: LinkedEventsNode<CalendarEvent>): CalendarNodeVirtualGrid {
-  const nodeEvents = node.events ?? [];
-  let gridWidthX = 0;
-  let gridHeightY = 0;
-  const cells: CalendarNodeVirtualGridCell[] = [];
-  for (const processedEvent of nodeEvents) {
-    if (!gridWidthX) {
-      gridWidthX = 1;
-      gridHeightY = 1;
-      cells.push({
-        event: processedEvent,
-        x: 0,
-        y: 0,
-      });
-    } else {
-      let eventPositionX: number = 0;
-      let eventPositionY: number = 0;
-      for (let rowIndex = 0; rowIndex < gridHeightY; rowIndex++) {
-        const collidingCells = cells.filter(collidingEvent =>
-          areEventsOverlappingInGrid(collidingEvent.event, processedEvent)
-        );
-        const eventsFinishedBefore = cells.filter(cell =>
-          isEventFinishedBeforeSnappedToGrid(cell.event, processedEvent)
-        );
-        eventPositionY = eventsFinishedBefore.length;
-        const firstCollidingCell = collidingCells[0];
-        const newEventPosition = firstCollidingCell?.x === 0 ? 0 : firstCollidingCell?.x + 1;
-        if (newEventPosition <= eventPositionX) {
-          eventPositionX = collidingCells.length;
-        }
-      }
-      const eventRowWidth = eventPositionX + 1;
-      if (eventRowWidth > gridWidthX) {
-        gridWidthX = eventPositionX + 1;
-      }
-      const eventColumnHeight = eventPositionY + 1;
-      if (eventColumnHeight > gridHeightY) {
-        gridHeightY = eventColumnHeight;
-      }
-
-      cells.push({
-        event: processedEvent,
-        x: eventPositionX,
-        y: eventPositionY,
-      });
-    }
-  }
-
-  return {
-    widthX: gridWidthX,
-    heightY: gridHeightY,
-    cells,
-  };
-}
-
 export function reduceGridToSlotColumns(
   slotTimes: CalendarSlotTime,
   grid: CalendarNodeVirtualGrid
@@ -256,25 +198,6 @@ export function splitEventsBySlot(
 
 export function isEventInSlot(event: TimeEvent, slot: CalendarSlotTime) {
   return event.start.getTime() >= slot.start.getTime() && event.start.getTime() < slot.end.getTime();
-}
-
-export function areEventsOverlappingInGrid(eventA: TimeEvent, eventB: TimeEvent) {
-  const eventAStartSnappedToGrid = new Date(eventA.start.getTime() - (eventA.start.getTime() % thirtyMinutes));
-  const eventAEndSnappedToGrid = new Date(eventA.end.getTime() + (eventA.end.getTime() % thirtyMinutes));
-  const eventBStartSnappedToGrid = new Date(eventB.start.getTime() - (eventB.start.getTime() % thirtyMinutes));
-  const eventBEndSnappedToGrid = new Date(eventB.end.getTime() + (eventB.end.getTime() % thirtyMinutes));
-  return (
-    (eventAStartSnappedToGrid.getTime() >= eventBStartSnappedToGrid.getTime() &&
-      eventAStartSnappedToGrid.getTime() < eventBEndSnappedToGrid.getTime()) ||
-    (eventBStartSnappedToGrid.getTime() >= eventAStartSnappedToGrid.getTime() &&
-      eventBStartSnappedToGrid.getTime() < eventAEndSnappedToGrid.getTime())
-  );
-}
-
-export function isEventFinishedBeforeSnappedToGrid(eventA: TimeEvent, eventB: TimeEvent) {
-  const eventAEndSnappedToGrid = new Date(eventA.end.getTime() + (eventA.end.getTime() % thirtyMinutes));
-  const eventBStartSnappedToGrid = new Date(eventB.start.getTime() - (eventB.start.getTime() % thirtyMinutes));
-  return eventAEndSnappedToGrid.getTime() <= eventBStartSnappedToGrid.getTime();
 }
 
 export function isEventPartOfNode(event: TimeEvent, node: LinkedEventsNode<CalendarEvent>) {
