@@ -1,10 +1,10 @@
 .week-day-view {
-  width: 100px;
-  border-left: 1px solid #ccc;
-  border-top: 1px solid #ccc;
-  border-bottom: none;
+    width: 100px;
+    border-left: 1px solid #ccc;
+    border-top: 1px solid #ccc;
+    border-bottom: none;
 
-  &:last-of-type {
-    border-right: 1px solid #ccc;
-  }
+    &:last-of-type {
+        border-right: 1px solid #ccc;
+    }
 }
