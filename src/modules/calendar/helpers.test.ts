@@ -265,5 +265,52 @@ describe("calendar helpers", () => {
         ).toBe(2);
       });
     });
+
+    describe("complex cases", () => {
+      const longEvent: CalendarEvent = {
+        start: new Date("2021-01-01 00:00"),
+        end: new Date("2021-01-01 02:00"),
+        title: "Event 1",
+        id: "1",
+      };
+      const shortEvent1: CalendarEvent = {
+        start: new Date("2021-01-01 00:00"),
+        end: new Date("2021-01-01 01:00"),
+        title: "Event 2",
+        id: "2",
+      };
+      const shortEvent2: CalendarEvent = {
+        start: new Date("2021-01-01 01:00"),
+        end: new Date("2021-01-01 02:00"),
+        title: "Event 3",
+        id: "3",
+      };
+      const shortEvent3: CalendarEvent = {
+        start: new Date("2021-01-01 01:00"),
+        end: new Date("2021-01-01 01:30"),
+        title: "Event 4",
+        id: "4",
+      };
+      it("should work with case 1 long and 3 short with 2 short overlapping", () => {
+        const result = getCalendarSlot(
+          {
+            start: new Date("2021-01-01 01:00"),
+            end: new Date("2021-01-01 01:30"),
+          },
+          getCalendarLinkedEventsNodes([longEvent, shortEvent1, shortEvent2, shortEvent3])
+        );
+        expect(result.columns.length).toBe(3);
+      });
+      it("should work with case 1 long and 3 short with 2 short overlapping in different order", () => {
+        const result = getCalendarSlot(
+          {
+            start: new Date("2021-01-01 01:00"),
+            end: new Date("2021-01-01 01:30"),
+          },
+          getCalendarLinkedEventsNodes([shortEvent3, shortEvent1, shortEvent2, longEvent])
+        );
+        expect(result.columns.length).toBe(3);
+      });
+    });
   });
 });

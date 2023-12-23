@@ -3,7 +3,14 @@ import { CalendarEvent, LinkedEventsNode, CalendarSlotTime, TimeEvent } from "..
 
 export function getCalendarLinkedEventsNodes(events: CalendarEvent[]): LinkedEventsNode<CalendarEvent>[] {
   const nodes: LinkedEventsNode<CalendarEvent>[] = [];
-  const sortedDays = [...events].sort((a, b) => a.start.getTime() - b.start.getTime());
+  const sortedDays = [...events].sort((a, b) => {
+    const sortByStartTime = a.start.getTime() - b.start.getTime();
+    if (sortByStartTime !== 0) {
+      return sortByStartTime;
+    }
+    const sortByDuration = b.end.getTime() - a.end.getTime();
+    return sortByDuration;
+  });
   for (const event of sortedDays) {
     if (nodes.length === 0) {
       nodes.push({
