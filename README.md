@@ -6,3 +6,4 @@
 # TODO:
 
 - Reduce complexity of slots building to linear?
+- Can we make it work without sorting?

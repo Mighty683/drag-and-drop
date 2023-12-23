@@ -1,4 +1,4 @@
-import { CalendarEvent, CalendarSlot, CalendarSlotTime, EventTimeTreeNode } from "./types";
+import { CalendarEvent, CalendarSlot, CalendarSlotTime, LinkedEventsNode } from "./types";
 import { v4 } from "uuid";
 
 import { format } from "date-fns/format";
@@ -107,25 +107,26 @@ export function getEventsForDay(date: Date, events: CalendarEvent[]): CalendarEv
   const dayStart = new Date(date);
   dayStart.setHours(0, 0, 0, 0);
   const dayEnd = new Date(dayStart.getTime() + 1000 * 60 * 60 * 24);
-  return events.filter(event => event.start.getTime() >= dayStart.getTime() && event.end.getTime() < dayEnd.getTime());
+  return events
+    .filter(event => event.start.getTime() >= dayStart.getTime() && event.end.getTime() < dayEnd.getTime())
+    .sort((a, b) => b.start.getTime() - a.start.getTime());
 }
 
 export function reduceEventsToDaySlots(date: Date, events: CalendarEvent[]): CalendarSlot[] {
   const daySlotsTimes = getDaySlotsTimes(date);
   const dayEvents = getEventsForDay(date, events);
-  const eventsTree = getCalendarEventsTrees(dayEvents);
-  const daySlots: CalendarSlot[] = daySlotsTimes.map(slot => getCalendarSlot(slot, eventsTree));
+  const eventsNodes = getCalendarLinkedEventsNodes(dayEvents);
+  const daySlots: CalendarSlot[] = daySlotsTimes.map(slot => getCalendarSlot(slot, eventsNodes));
 
-  console.log(eventsTree);
   return daySlots;
 }
 
 export function getCalendarSlot(
   slotTimes: CalendarSlotTime,
-  eventsTree: EventTimeTreeNode<CalendarEvent>
+  eventsNodes: LinkedEventsNode<CalendarEvent>[]
 ): CalendarSlot {
-  const slotBranch = findBranchMatchingSlot(eventsTree, slotTimes);
-  const branchEvents = slotBranch ? reduceBranchToEventsList(slotBranch) : [];
+  const slotNode = findSlotNode(slotTimes, eventsNodes);
+  const branchEvents = slotNode ? reduceNodeToEventsList(slotNode) : [];
   const [previousEvents, eventsStartedInSlot, proceedingEvents] = splitEventsBySlot(slotTimes, branchEvents);
 
   return {
@@ -172,91 +173,6 @@ export function splitEventsBySlot(
   );
 }
 
-export function reduceBranchToEventsList(tree: EventTimeTreeNode<CalendarEvent>): CalendarEvent[] {
-  const events: CalendarEvent[] = [];
-  if (tree.event) {
-    events.push(tree.event);
-  }
-  for (const child of tree.children) {
-    events.push(...reduceBranchToEventsList(child));
-  }
-  return events;
-}
-
-export function findBranchMatchingSlot(
-  tree: EventTimeTreeNode<CalendarEvent>,
-  slot: CalendarSlotTime
-): EventTimeTreeNode<CalendarEvent> | undefined {
-  if (!tree.children.length) {
-    return undefined;
-  }
-  for (const branch of tree.children) {
-    if ((branch.event && isEventInSlot(branch.event, slot)) || findBranchMatchingSlot(branch, slot)) {
-      return branch;
-    }
-  }
-  return undefined;
-}
-
-export function getCalendarEventsTrees(dayEvents: CalendarEvent[]): EventTimeTreeNode<CalendarEvent> {
-  const tree: EventTimeTreeNode<CalendarEvent> = {
-    children: [],
-  };
-  for (const event of dayEvents) {
-    addEventToRoot(tree, event);
-  }
-  return tree;
-}
-export function addEventToRoot(tree: EventTimeTreeNode<CalendarEvent>, event: CalendarEvent) {
-  if (!tree.children.length) {
-    tree.children.push({
-      event,
-      children: [],
-    });
-    return;
-  }
-
-  let addedToAnyChildren = false;
-  for (const child of tree.children) {
-    if (addEventToNode(child, event)) {
-      addedToAnyChildren = true;
-      break;
-    }
-  }
-
-  if (!addedToAnyChildren) {
-    tree.children.push({
-      event,
-      children: [],
-    });
-  }
-}
-/**
- *
- * @param tree
- * @param event
- * @returns true if event was added to tree, false otherwise
- */
-export function addEventToNode(tree: EventTimeTreeNode<CalendarEvent>, event: CalendarEvent): boolean {
-  if (tree.event && areEventsOverlapping(tree.event, event)) {
-    tree.children.push({
-      event,
-      children: [],
-    });
-    return true;
-  }
-
-  let addedToAnyChildren = false;
-  for (const child of tree.children) {
-    if (addEventToNode(child, event)) {
-      addedToAnyChildren = true;
-      break;
-    }
-  }
-
-  return addedToAnyChildren;
-}
-
 export function isEventInSlot(event: CalendarEvent, slot: CalendarSlotTime) {
   return event.start.getTime() >= slot.start.getTime() && event.start.getTime() < slot.end.getTime();
 }
@@ -266,4 +182,94 @@ export function areEventsOverlapping(eventA: CalendarEvent, eventB: CalendarEven
     (eventA.start.getTime() >= eventB.start.getTime() && eventA.start.getTime() < eventB.end.getTime()) ||
     (eventB.start.getTime() >= eventA.start.getTime() && eventB.start.getTime() < eventA.end.getTime())
   );
+}
+/**
+ * TODO: can we do it without sorting?
+ */
+export function getCalendarLinkedEventsNodes(events: CalendarEvent[]): LinkedEventsNode<CalendarEvent>[] {
+  const nodes: LinkedEventsNode<CalendarEvent>[] = [];
+  const sortedDays = [...events].sort((a, b) => a.start.getTime() - b.start.getTime());
+  for (const event of sortedDays) {
+    if (nodes.length === 0) {
+      nodes.push({
+        event,
+      });
+      continue;
+    } else {
+      let added = false;
+      for (const node of nodes) {
+        const modifiedNode = tryAddEventToHeadOfNode(event, node);
+        if (modifiedNode.event === event) {
+          added = true;
+          break;
+        }
+      }
+      if (!added) {
+        nodes.push({
+          event,
+        });
+      }
+    }
+  }
+
+  return nodes;
+}
+
+export function tryAddEventToHeadOfNode(
+  event: CalendarEvent,
+  node: LinkedEventsNode<CalendarEvent>
+): LinkedEventsNode<CalendarEvent> {
+  if (node.event && areEventsOverlapping(event, node.event)) {
+    node.next = {
+      event: node.event,
+      next: node.next,
+    };
+    node.event = event;
+    return node;
+  } else if (node.next) {
+    let nextNode: LinkedEventsNode<CalendarEvent> | undefined = node.next;
+    while (nextNode) {
+      if (nextNode.event && areEventsOverlapping(event, nextNode.event)) {
+        node.next = {
+          event: node.event,
+          next: node.next,
+        };
+        node.event = event;
+        return node;
+      }
+      nextNode = nextNode.next;
+    }
+  }
+  return node;
+}
+
+export function findSlotNode(
+  slotTimes: CalendarSlotTime,
+  eventsNodes: LinkedEventsNode<CalendarEvent>[]
+): LinkedEventsNode<CalendarEvent> | undefined {
+  for (const node of eventsNodes) {
+    if (doesNodeContainSlot(node, slotTimes)) {
+      return node;
+    }
+  }
+}
+
+export function doesNodeContainSlot(node: LinkedEventsNode<CalendarEvent>, slot: CalendarSlotTime) {
+  if (node.event && isEventInSlot(node.event, slot)) {
+    return true;
+  }
+  if (node.next) {
+    return doesNodeContainSlot(node.next, slot);
+  }
+  return false;
+}
+
+export function reduceNodeToEventsList(node: LinkedEventsNode<CalendarEvent>): CalendarEvent[] {
+  if (!node.event) {
+    return [];
+  }
+  if (!node.next) {
+    return [node.event];
+  }
+  return [node.event, ...reduceNodeToEventsList(node.next)];
 }

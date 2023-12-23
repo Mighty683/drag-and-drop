@@ -1,5 +1,11 @@
 import { describe, it, expect } from "vitest";
-import { getDateWeekDays, getDaySlotsTimes, getCalendarSlot, getCalendarEventsTrees } from "./helpers";
+import {
+  getDateWeekDays,
+  getDaySlotsTimes,
+  getCalendarSlot,
+  getCalendarLinkedEventsNodes,
+  createMockEvents,
+} from "./helpers";
 import { CalendarEvent, CalendarSlotTime } from "./types";
 
 describe("calendar helpers", () => {
@@ -46,7 +52,7 @@ describe("calendar helpers", () => {
           title: "Event 2",
           id: "2",
         };
-        expect(getCalendarSlot(testSlot, getCalendarEventsTrees([event1, event2])).rows.length).toBe(2);
+        expect(getCalendarSlot(testSlot, getCalendarLinkedEventsNodes([event1, event2])).rows.length).toBe(2);
       });
 
       it("should not return the event which ended before slot", () => {
@@ -62,7 +68,7 @@ describe("calendar helpers", () => {
           title: "Event 2",
           id: "2",
         };
-        expect(getCalendarSlot(testSlot, getCalendarEventsTrees([event1, event2])).rows.length).toBe(1);
+        expect(getCalendarSlot(testSlot, getCalendarLinkedEventsNodes([event1, event2])).rows.length).toBe(1);
       });
     });
     describe("cases after slot", () => {
@@ -83,7 +89,7 @@ describe("calendar helpers", () => {
           title: "Event 2",
           id: "2",
         };
-        expect(getCalendarSlot(testSlot, getCalendarEventsTrees([event1, event2])).rows.length).toBe(2);
+        expect(getCalendarSlot(testSlot, getCalendarLinkedEventsNodes([event1, event2])).rows.length).toBe(2);
       });
       it("should not return the event which ended after longest slot event", () => {
         const event1: CalendarEvent = {
@@ -98,7 +104,7 @@ describe("calendar helpers", () => {
           title: "Event 2",
           id: "2",
         };
-        expect(getCalendarSlot(testSlot, getCalendarEventsTrees([event1, event2])).rows.length).toBe(1);
+        expect(getCalendarSlot(testSlot, getCalendarLinkedEventsNodes([event1, event2])).rows.length).toBe(1);
       });
       it("should not return the event which ended before longest slot event", () => {
         const event1: CalendarEvent = {
@@ -113,7 +119,7 @@ describe("calendar helpers", () => {
           title: "Event 2",
           id: "2",
         };
-        expect(getCalendarSlot(testSlot, getCalendarEventsTrees([event1, event2])).rows.length).toBe(1);
+        expect(getCalendarSlot(testSlot, getCalendarLinkedEventsNodes([event1, event2])).rows.length).toBe(1);
       });
 
       it("should return events which are chained with overlapping", () => {
@@ -135,7 +141,7 @@ describe("calendar helpers", () => {
           title: "Event 3",
           id: "3",
         };
-        expect(getCalendarSlot(testSlot, getCalendarEventsTrees([event1, event2, event3])).rows.length).toBe(3);
+        expect(getCalendarSlot(testSlot, getCalendarLinkedEventsNodes([event1, event2, event3])).rows.length).toBe(3);
       });
       it("should find two events which are chained with overlapping", () => {
         const event1: CalendarEvent = {
@@ -156,7 +162,7 @@ describe("calendar helpers", () => {
           title: "Event 3",
           id: "3",
         };
-        expect(getCalendarSlot(testSlot, getCalendarEventsTrees([event1, event2, event3])).rows.length).toBe(3);
+        expect(getCalendarSlot(testSlot, getCalendarLinkedEventsNodes([event1, event2, event3])).rows.length).toBe(3);
       });
 
       it("should find element which extends over slot longest event", () => {
@@ -178,7 +184,7 @@ describe("calendar helpers", () => {
           title: "Event 3",
           id: "3",
         };
-        expect(getCalendarSlot(testSlot, getCalendarEventsTrees([event1, event2, event3])).rows.length).toBe(3);
+        expect(getCalendarSlot(testSlot, getCalendarLinkedEventsNodes([event1, event2, event3])).rows.length).toBe(3);
       });
 
       it("should find element which extends over slot longest event in different order", () => {
@@ -200,7 +206,7 @@ describe("calendar helpers", () => {
           title: "Event 3",
           id: "3",
         };
-        expect(getCalendarSlot(testSlot, getCalendarEventsTrees([event3, event2, event1])).rows.length).toBe(3);
+        expect(getCalendarSlot(testSlot, getCalendarLinkedEventsNodes([event3, event2, event1])).rows.length).toBe(3);
       });
     });
 
@@ -228,7 +234,20 @@ describe("calendar helpers", () => {
           title: "Event 3",
           id: "3",
         };
-        expect(getCalendarSlot(testSlot, getCalendarEventsTrees([event1, event2, event3])).rows.length).toBe(3);
+        expect(getCalendarSlot(testSlot, getCalendarLinkedEventsNodes([event1, event2, event3])).rows.length).toBe(3);
+      });
+
+      it("should work on mock data", () => {
+        const mockEvents = createMockEvents();
+        expect(
+          getCalendarSlot(
+            {
+              start: mockEvents[0].start,
+              end: mockEvents[0].end,
+            },
+            getCalendarLinkedEventsNodes(mockEvents)
+          ).rows.length
+        ).toBe(2);
       });
     });
   });

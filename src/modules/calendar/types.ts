@@ -46,7 +46,7 @@ export type CalendarStore = {
   setIsAnyEventDragging: (isDragging: boolean) => void;
 };
 
-export type EventTimeTreeNode<E extends TimeEvent = TimeEvent> = {
+export type LinkedEventsNode<E extends TimeEvent = TimeEvent> = {
   event?: E;
-  children: EventTimeTreeNode<E>[];
+  next?: LinkedEventsNode<E>;
 };
