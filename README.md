@@ -6,6 +6,7 @@
   - Can we make it work without sorting? - No it solves a lot of problems with
     building events nodes
 - Refactor and simplify grid building
+- Grouping events over 3 elements in row
 
 # TODO:
 

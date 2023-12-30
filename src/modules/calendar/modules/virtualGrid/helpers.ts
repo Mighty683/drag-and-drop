@@ -8,7 +8,11 @@ import {
   TimeEvent,
 } from '../../types';
 import { LinkedEventsNode } from '../linkingEvents/types';
-import { CalendarNodeVirtualGrid, CalendarNodeVirtualGridCell } from './types';
+import {
+  CalendarNodeVirtualGrid,
+  CalendarNodeVirtualGridCell,
+  GRID_WIDTH_LIMIT,
+} from './types';
 
 export const GRID_CELL_DURATION = 1000 * 60 * 30;
 
@@ -19,6 +23,7 @@ export function renderVirtualGridFromNode(
   let gridWidthX = 0;
   let gridHeightY = 0;
   const cells: CalendarNodeVirtualGridCell[] = [];
+  const overflowLimitCells: CalendarNodeVirtualGridCell[] = [];
   for (const processedEvent of nodeEvents) {
     if (!gridWidthX) {
       gridWidthX = 1;
@@ -46,19 +51,27 @@ export function renderVirtualGridFromNode(
         }
       }
       const eventRowWidth = bestFittedEventPositionX + 1;
-      if (eventRowWidth > gridWidthX) {
-        gridWidthX = bestFittedEventPositionX + 1;
+      if (eventRowWidth > gridWidthX && eventRowWidth <= GRID_WIDTH_LIMIT) {
+        gridWidthX = eventRowWidth;
       }
       const eventColumnHeight = bestFittedEventPositionY + 1;
       if (eventColumnHeight > gridHeightY) {
         gridHeightY = eventColumnHeight;
       }
 
-      cells.push({
-        event: processedEvent,
-        x: bestFittedEventPositionX,
-        y: bestFittedEventPositionY,
-      });
+      if (eventRowWidth > GRID_WIDTH_LIMIT) {
+        overflowLimitCells.push({
+          event: processedEvent,
+          x: bestFittedEventPositionX,
+          y: bestFittedEventPositionY,
+        });
+      } else {
+        cells.push({
+          event: processedEvent,
+          x: bestFittedEventPositionX,
+          y: bestFittedEventPositionY,
+        });
+      }
     }
   }
 
@@ -66,6 +79,7 @@ export function renderVirtualGridFromNode(
     widthX: gridWidthX,
     heightY: gridHeightY,
     cells,
+    overflowLimitCells,
   };
 }
 

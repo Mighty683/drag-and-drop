@@ -28,7 +28,7 @@ export function EventTile({ event, className, disableDrag }: EventTileProps) {
       {...draggableAPI.listeners}
       {...draggableAPI.attributes}
       style={{
-        height: getEventRequiredSlotsNumber(event) * 50,
+        height: `${getEventRequiredSlotsNumber(event) * 100}%`,
         pointerEvents: isAnyEventDragging ? 'none' : 'all',
         backgroundColor: '#ccc',
         opacity:

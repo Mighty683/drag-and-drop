@@ -2,7 +2,23 @@
   height: 50px;
   width: 100%;
   font-size: 8px;
-  overflow: visible;
+
+  &__body {
+    width: 100%;
+    height: calc(100% - 1em);
+    display: flex;
+    flex-direction: row;
+    overflow: visible;
+  }
+  &__spacer {
+    height: 100%;
+    min-width: 15px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: flex-end;
+    white-space: nowrap;
+  }
 
   &__events-rows {
     width: 100%;

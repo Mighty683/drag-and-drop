@@ -22,15 +22,24 @@ export function WeekDaySlot({ slot }: WeekDaySlotProps) {
         backgroundColor: droppable.isOver ? '#aaa' : 'transparent',
       }}
     >
-      {formatSlotDate(slot)}
+    {formatSlotDate(slot)}
+    <div className="week-day-slot__body">
       <div className="week-day-slot__events-rows">
-        {slot.columns?.map((slotRow) => {
-          if (!slotRow.inScopeOfSlot)
-            return (
-              <div key={slotRow.id} className="week-day-slot__empty-row"></div>
-            );
-          return <EventTile key={slotRow.event.id} event={slotRow.event} />;
-        })}
+          {slot.visibleColumns?.map((slotRow) => {
+            if (!slotRow.inScopeOfSlot)
+              return (
+                <div key={slotRow.id} className="week-day-slot__empty-row"></div>
+              );
+            return <EventTile key={slotRow.event.id} event={slotRow.event} />;
+          })}
+        </div>
+        <div className="week-day-slot__spacer">
+            {
+             slot.hiddenColumns.length > 0 && (
+              `+ ${slot.hiddenColumns?.length}`
+             )
+            }
+          </div>
       </div>
     </div>
   );

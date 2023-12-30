@@ -66,5 +66,41 @@ describe('grid helpers', () => {
       expect(grid.cells[2].x).toBe(1);
       expect(grid.cells[2].y).toBe(1);
     });
+    it('should return the correct grid 4 elements case', () => {
+      const grid = renderVirtualGridFromNode({
+        start: new Date('2021-01-01 00:00'),
+        end: new Date('2021-01-01 01:30'),
+        events: [
+          {
+            start: new Date('2021-01-01 00:00'),
+            end: new Date('2021-01-01 01:00'),
+            title: 'Event 1',
+            id: '1',
+          },
+          {
+            start: new Date('2021-01-01 00:00'),
+            end: new Date('2021-01-01 00:30'),
+            title: 'Event 2',
+            id: '2',
+          },
+          {
+            start: new Date('2021-01-01 00:00'),
+            end: new Date('2021-01-01 00:30'),
+            title: 'Event 3',
+            id: '3',
+          },
+          {
+            start: new Date('2021-01-01 00:00'),
+            end: new Date('2021-01-01 00:30'),
+            title: 'Event 4',
+            id: '4',
+          },
+        ],
+      });
+
+      expect(grid.widthX).toBe(3);
+      expect(grid.overflowLimitCells.length).toBe(1);
+      expect(grid.cells.length).toBe(3);
+    });
   });
 });

@@ -14,7 +14,8 @@ export type CalendarEventId = string;
 export type CalendarSlotTime = TimeEvent;
 
 export type CalendarSlot = CalendarSlotTime & {
-  columns: CalendarSlotColumn[];
+  visibleColumns: CalendarSlotColumn[];
+  hiddenColumns: CalendarSlotColumn[];
 };
 
 export type CalendarSlotColumn =

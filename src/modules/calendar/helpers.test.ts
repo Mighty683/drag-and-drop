@@ -58,7 +58,7 @@ describe('calendar helpers', () => {
           testSlot,
           getCalendarLinkedEventsNodes([event1, event2]),
         );
-        expect(result.columns.length).toBe(2);
+        expect(result.visibleColumns.length).toBe(2);
       });
 
       it('should not return the event which ended before slot', () => {
@@ -78,7 +78,7 @@ describe('calendar helpers', () => {
           getCalendarSlot(
             testSlot,
             getCalendarLinkedEventsNodes([event1, event2]),
-          ).columns.length,
+          ).visibleColumns.length,
         ).toBe(1);
       });
     });
@@ -104,7 +104,7 @@ describe('calendar helpers', () => {
           getCalendarSlot(
             testSlot,
             getCalendarLinkedEventsNodes([event1, event2]),
-          ).columns.length,
+          ).visibleColumns.length,
         ).toBe(2);
       });
       it('should not return the event which ended after longest slot event', () => {
@@ -124,7 +124,7 @@ describe('calendar helpers', () => {
           getCalendarSlot(
             testSlot,
             getCalendarLinkedEventsNodes([event1, event2]),
-          ).columns.length,
+          ).visibleColumns.length,
         ).toBe(1);
       });
       it('should not return the event which ended before longest slot event', () => {
@@ -144,7 +144,7 @@ describe('calendar helpers', () => {
           getCalendarSlot(
             testSlot,
             getCalendarLinkedEventsNodes([event1, event2]),
-          ).columns.length,
+          ).visibleColumns.length,
         ).toBe(1);
       });
 
@@ -171,9 +171,9 @@ describe('calendar helpers', () => {
           testSlot,
           getCalendarLinkedEventsNodes([event1, event2, event3]),
         );
-        expect(result.columns.length).toBe(2);
-        expect(result.columns[0].inScopeOfSlot).toBe(true);
-        expect(result.columns[1].inScopeOfSlot).toBe(false);
+        expect(result.visibleColumns.length).toBe(2);
+        expect(result.visibleColumns[0].inScopeOfSlot).toBe(true);
+        expect(result.visibleColumns[1].inScopeOfSlot).toBe(false);
       });
       it('should find two events which are chained with overlapping', () => {
         const event1: CalendarEvent = {
@@ -199,10 +199,10 @@ describe('calendar helpers', () => {
           testSlot,
           getCalendarLinkedEventsNodes([event1, event2, event3]),
         );
-        expect(result.columns.length).toBe(2);
+        expect(result.visibleColumns.length).toBe(2);
 
-        expect(result.columns[0].inScopeOfSlot).toBe(true);
-        expect(result.columns[1].inScopeOfSlot).toBe(false);
+        expect(result.visibleColumns[0].inScopeOfSlot).toBe(true);
+        expect(result.visibleColumns[1].inScopeOfSlot).toBe(false);
       });
 
       it('should find element which extends over slot longest event', () => {
@@ -228,10 +228,10 @@ describe('calendar helpers', () => {
           testSlot,
           getCalendarLinkedEventsNodes([event1, event2, event3]),
         );
-        expect(result.columns.length).toBe(2);
-        expect(result.columns[0].inScopeOfSlot).toBe(true);
-        expect(result.columns[1].inScopeOfSlot).toBe(true);
-        expect(result.columns[1].event).toBe(event2);
+        expect(result.visibleColumns.length).toBe(2);
+        expect(result.visibleColumns[0].inScopeOfSlot).toBe(true);
+        expect(result.visibleColumns[1].inScopeOfSlot).toBe(true);
+        expect(result.visibleColumns[1].event).toBe(event2);
       });
 
       it('should find element which extends over slot longest event in different order', () => {
@@ -257,10 +257,10 @@ describe('calendar helpers', () => {
           testSlot,
           getCalendarLinkedEventsNodes([event1, event2, event3]),
         );
-        expect(result.columns.length).toBe(2);
-        expect(result.columns[0].inScopeOfSlot).toBe(true);
-        expect(result.columns[1].inScopeOfSlot).toBe(true);
-        expect(result.columns[1].event).toBe(event2);
+        expect(result.visibleColumns.length).toBe(2);
+        expect(result.visibleColumns[0].inScopeOfSlot).toBe(true);
+        expect(result.visibleColumns[1].inScopeOfSlot).toBe(true);
+        expect(result.visibleColumns[1].event).toBe(event2);
       });
     });
 
@@ -292,7 +292,7 @@ describe('calendar helpers', () => {
           getCalendarSlot(
             testSlot,
             getCalendarLinkedEventsNodes([event1, event2, event3]),
-          ).columns.length,
+          ).visibleColumns.length,
         ).toBe(3);
       });
 
@@ -305,7 +305,7 @@ describe('calendar helpers', () => {
               end: mockEvents[0].end,
             },
             getCalendarLinkedEventsNodes(mockEvents),
-          ).columns.length,
+          ).visibleColumns.length,
         ).toBe(2);
       });
     });
@@ -348,7 +348,7 @@ describe('calendar helpers', () => {
             shortEvent3,
           ]),
         );
-        expect(result.columns.length).toBe(3);
+        expect(result.visibleColumns.length).toBe(3);
       });
       it('should work with case 1 long and 3 short with 2 short overlapping in different order', () => {
         const result = getCalendarSlot(
@@ -363,7 +363,49 @@ describe('calendar helpers', () => {
             longEvent,
           ]),
         );
-        expect(result.columns.length).toBe(3);
+        expect(result.visibleColumns.length).toBe(3);
+      });
+    });
+
+    describe('hidden columns  cases', () => {
+      it('should return the correct hidden columns', () => {
+        const testSlot: CalendarSlotTime = {
+          start: new Date('2021-01-01 00:00'),
+          end: new Date('2021-01-01 00:30'),
+        };
+        const event1: CalendarEvent = {
+          start: new Date('2021-01-01 00:00'),
+          end: new Date('2021-01-01 01:00'),
+          title: 'Event 1',
+          id: '1',
+        };
+
+        const event2: CalendarEvent = {
+          start: new Date('2021-01-01 00:00'),
+          end: new Date('2021-01-01 01:00'),
+          title: 'Event 2',
+          id: '2',
+        };
+
+        const event3: CalendarEvent = {
+          start: new Date('2021-01-01 00:00'),
+          end: new Date('2021-01-01 01:00'),
+          title: 'Event 3',
+          id: '3',
+        };
+
+        const event4: CalendarEvent = {
+          start: new Date('2021-01-01 00:00'),
+          end: new Date('2021-01-01 01:00'),
+          title: 'Event 4',
+          id: '4',
+        };
+        const result = getCalendarSlot(
+          testSlot,
+          getCalendarLinkedEventsNodes([event1, event2, event3, event4]),
+        );
+        expect(result.hiddenColumns.length).toBe(1);
+        expect(result.visibleColumns.length).toBe(3);
       });
     });
   });
