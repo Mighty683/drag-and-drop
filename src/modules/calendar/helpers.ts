@@ -6,10 +6,7 @@ import {
   getCalendarLinkedEventsNodes,
 } from './modules/linkingEvents/helpers';
 import { LinkedEventsNode } from './modules/linkingEvents/types';
-import {
-  GRID_CELL_DURATION,
-  renderVirtualGridFromNode,
-} from './modules/virtualGrid/helpers';
+import { renderVirtualGridFromNode } from './modules/virtualGrid/helpers';
 import {
   CalendarNodeVirtualGrid,
   CalendarNodeVirtualGridCell,
@@ -19,6 +16,7 @@ import {
   CalendarSlot,
   CalendarSlotColumn,
   CalendarSlotTime,
+  GRID_CELL_DURATION,
   TimeEvent,
 } from './types';
 
