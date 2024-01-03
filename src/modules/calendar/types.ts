@@ -1,3 +1,9 @@
+export const GRID_CELL_DURATION = 1000 * 60 * 30;
+
+export enum RoundingDirection {
+  up = 'up',
+  down = 'down',
+}
 export type TimeEvent = {
   start: Date;
   end: Date;

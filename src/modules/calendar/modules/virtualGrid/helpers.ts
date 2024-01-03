@@ -5,7 +5,8 @@ import {
   CalendarEvent,
   CalendarSlotColumn,
   CalendarSlotTime,
-  TimeEvent,
+  GRID_CELL_DURATION,
+  RoundingDirection,
 } from '../../types';
 import { LinkedEventsNode } from '../linkingEvents/types';
 import {
@@ -13,8 +14,6 @@ import {
   CalendarNodeVirtualGridCell,
   GRID_WIDTH_LIMIT,
 } from './types';
-
-export const GRID_CELL_DURATION = 1000 * 60 * 30;
 
 export function renderVirtualGridFromNode(
   node: LinkedEventsNode<CalendarEvent>,
@@ -142,38 +141,52 @@ export function reduceGridToSlotColumns(
 }
 
 export function isEventFinishedBeforeSnappedToGrid(
-  eventA: TimeEvent,
-  eventB: TimeEvent,
+  eventA: CalendarEvent,
+  eventB: CalendarEvent,
 ) {
-  const eventAEndSnappedToGrid = new Date(
-    eventA.end.getTime() + (eventA.end.getTime() % GRID_CELL_DURATION),
+  const eventAEndSnappedToGrid = snapDateToGrid(
+    eventA.end,
+    RoundingDirection.up,
   );
-  const eventBStartSnappedToGrid = new Date(
-    eventB.start.getTime() - (eventB.start.getTime() % GRID_CELL_DURATION),
+  const eventBStartSnappedToGrid = snapDateToGrid(
+    eventB.start,
+    RoundingDirection.down,
   );
   return eventAEndSnappedToGrid.getTime() <= eventBStartSnappedToGrid.getTime();
 }
 
 export function areEventsOverlappingInGrid(
-  eventA: TimeEvent,
-  eventB: TimeEvent,
+  eventA: CalendarEvent,
+  eventB: CalendarEvent,
 ) {
-  const eventAStartSnappedToGrid = new Date(
-    eventA.start.getTime() - (eventA.start.getTime() % GRID_CELL_DURATION),
+  const eventAStartSnappedToGrid = snapDateToGrid(
+    eventA.start,
+    RoundingDirection.down,
   );
-  const eventAEndSnappedToGrid = new Date(
-    eventA.end.getTime() + (eventA.end.getTime() % GRID_CELL_DURATION),
+  const eventAEndSnappedToGrid = snapDateToGrid(
+    eventA.end,
+    RoundingDirection.up,
   );
-  const eventBStartSnappedToGrid = new Date(
-    eventB.start.getTime() - (eventB.start.getTime() % GRID_CELL_DURATION),
+  const eventBStartSnappedToGrid = snapDateToGrid(
+    eventB.start,
+    RoundingDirection.down,
   );
-  const eventBEndSnappedToGrid = new Date(
-    eventB.end.getTime() + (eventB.end.getTime() % GRID_CELL_DURATION),
+  const eventBEndSnappedToGrid = snapDateToGrid(
+    eventB.end,
+    RoundingDirection.up,
   );
   return (
     (eventAStartSnappedToGrid.getTime() >= eventBStartSnappedToGrid.getTime() &&
       eventAStartSnappedToGrid.getTime() < eventBEndSnappedToGrid.getTime()) ||
     (eventBStartSnappedToGrid.getTime() >= eventAStartSnappedToGrid.getTime() &&
       eventBStartSnappedToGrid.getTime() < eventAEndSnappedToGrid.getTime())
+  );
+}
+
+export function snapDateToGrid(date: Date, direction: RoundingDirection): Date {
+  const dateTime = date.getTime();
+  const directionMultiplier = direction === RoundingDirection.down ? -1 : 1;
+  return new Date(
+    dateTime + directionMultiplier * (dateTime % GRID_CELL_DURATION),
   );
 }
