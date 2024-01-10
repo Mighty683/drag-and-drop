@@ -33,27 +33,19 @@ export function renderVirtualGridFromNode(
         y: 0,
       });
     } else {
-      let bestFittedEventPositionX: number = 0;
-      let bestFittedEventPositionY: number = 0;
-      for (let rowIndex = 0; rowIndex < gridHeightY; rowIndex++) {
-        const newEventPositionY = calculateElementPositionYInGrid(
-          processedEvent,
-          cells,
-        );
-        const newEventPositionX = calculateElementPositionXInGrid(
-          processedEvent,
-          cells,
-        );
-        bestFittedEventPositionY = newEventPositionY;
-        if (rowIndex === 0 || newEventPositionX <= bestFittedEventPositionX) {
-          bestFittedEventPositionX = newEventPositionX;
-        }
-      }
-      const eventRowWidth = bestFittedEventPositionX + 1;
+      const newEventPositionX = calculateElementPositionXInGrid(
+        processedEvent,
+        cells,
+      );
+      const newEventPositionY = calculateElementPositionYInGrid(
+        processedEvent,
+        cells.filter((cell) => cell.x === newEventPositionX),
+      );
+      const eventRowWidth = newEventPositionX + 1;
       if (eventRowWidth > gridWidthX && eventRowWidth <= GRID_WIDTH_LIMIT) {
         gridWidthX = eventRowWidth;
       }
-      const eventColumnHeight = bestFittedEventPositionY + 1;
+      const eventColumnHeight = newEventPositionY + 1;
       if (eventColumnHeight > gridHeightY) {
         gridHeightY = eventColumnHeight;
       }
@@ -61,14 +53,14 @@ export function renderVirtualGridFromNode(
       if (eventRowWidth > GRID_WIDTH_LIMIT) {
         overflowLimitCells.push({
           event: processedEvent,
-          x: bestFittedEventPositionX,
-          y: bestFittedEventPositionY,
+          x: newEventPositionX,
+          y: newEventPositionY,
         });
       } else {
         cells.push({
           event: processedEvent,
-          x: bestFittedEventPositionX,
-          y: bestFittedEventPositionY,
+          x: newEventPositionX,
+          y: newEventPositionY,
         });
       }
     }
