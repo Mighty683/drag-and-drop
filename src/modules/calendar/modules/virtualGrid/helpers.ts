@@ -20,47 +20,34 @@ export function renderVirtualGridFromNode(
 ): CalendarNodeVirtualGrid {
   const nodeEvents = node.events ?? [];
   let gridWidthX = 0;
-  let gridHeightY = 0;
   const cells: CalendarNodeVirtualGridCell[] = [];
   const overflowLimitCells: CalendarNodeVirtualGridCell[] = [];
   for (const processedEvent of nodeEvents) {
     if (!gridWidthX) {
       gridWidthX = 1;
-      gridHeightY = 1;
       cells.push({
         event: processedEvent,
         x: 0,
-        y: 0,
       });
     } else {
       const newEventPositionX = calculateElementPositionXInGrid(
         processedEvent,
         cells,
       );
-      const newEventPositionY = calculateElementPositionYInGrid(
-        processedEvent,
-        cells.filter((cell) => cell.x === newEventPositionX),
-      );
       const eventRowWidth = newEventPositionX + 1;
       if (eventRowWidth > gridWidthX && eventRowWidth <= GRID_WIDTH_LIMIT) {
         gridWidthX = eventRowWidth;
-      }
-      const eventColumnHeight = newEventPositionY + 1;
-      if (eventColumnHeight > gridHeightY) {
-        gridHeightY = eventColumnHeight;
       }
 
       if (eventRowWidth > GRID_WIDTH_LIMIT) {
         overflowLimitCells.push({
           event: processedEvent,
           x: newEventPositionX,
-          y: newEventPositionY,
         });
       } else {
         cells.push({
           event: processedEvent,
           x: newEventPositionX,
-          y: newEventPositionY,
         });
       }
     }
@@ -68,7 +55,6 @@ export function renderVirtualGridFromNode(
 
   return {
     widthX: gridWidthX,
-    heightY: gridHeightY,
     cells,
     overflowLimitCells,
   };

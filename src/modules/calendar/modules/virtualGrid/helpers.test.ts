@@ -25,11 +25,8 @@ describe('grid helpers', () => {
       });
 
       expect(grid.widthX).toBe(2);
-      expect(grid.heightY).toBe(1);
       expect(grid.cells[0].x).toBe(0);
-      expect(grid.cells[0].y).toBe(0);
       expect(grid.cells[1].x).toBe(1);
-      expect(grid.cells[1].y).toBe(0);
     });
     it('should return the correct grid 3 elements case', () => {
       const grid = renderVirtualGridFromNode({
@@ -58,13 +55,9 @@ describe('grid helpers', () => {
       });
 
       expect(grid.widthX).toBe(2);
-      expect(grid.heightY).toBe(2);
       expect(grid.cells[0].x).toBe(0);
-      expect(grid.cells[0].y).toBe(0);
       expect(grid.cells[1].x).toBe(1);
-      expect(grid.cells[1].y).toBe(0);
       expect(grid.cells[2].x).toBe(1);
-      expect(grid.cells[2].y).toBe(1);
     });
     it('should return the correct grid 4 elements case', () => {
       const grid = renderVirtualGridFromNode({
