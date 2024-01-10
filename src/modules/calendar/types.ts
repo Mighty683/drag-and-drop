@@ -1,4 +1,7 @@
-export const GRID_CELL_DURATION = 1000 * 60 * 30;
+export const MINUTE = 1000 * 60;
+export const GRID_CELL_DURATION_MINUTES = 15;
+export const GRID_CELL_DURATION = MINUTE * GRID_CELL_DURATION_MINUTES;
+export const DAY = MINUTE * 60 * 24;
 
 export enum RoundingDirection {
   up = 'up',
@@ -21,7 +24,6 @@ export type CalendarSlotTime = TimeEvent;
 
 export type CalendarSlot = CalendarSlotTime & {
   visibleColumns: CalendarSlotColumn[];
-  hiddenColumns: CalendarSlotColumn[];
 };
 
 export type CalendarSlotColumn =

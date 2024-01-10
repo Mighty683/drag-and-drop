@@ -30,8 +30,8 @@ describe('calendar helpers', () => {
       const slots = getDaySlotsTimes(date);
       expect(slots[0].start.getHours()).toBe(0);
       expect(slots[0].start.getMinutes()).toBe(0);
-      expect(slots[47].start.getHours()).toBe(23);
-      expect(slots[47].start.getMinutes()).toBe(30);
+      expect(slots[94].start.getHours()).toBe(23);
+      expect(slots[94].start.getMinutes()).toBe(30);
     });
   });
 
@@ -363,48 +363,6 @@ describe('calendar helpers', () => {
             longEvent,
           ]),
         );
-        expect(result.visibleColumns.length).toBe(3);
-      });
-    });
-
-    describe('hidden columns  cases', () => {
-      it('should return the correct hidden columns', () => {
-        const testSlot: CalendarSlotTime = {
-          start: new Date('2021-01-01 00:00'),
-          end: new Date('2021-01-01 00:30'),
-        };
-        const event1: CalendarEvent = {
-          start: new Date('2021-01-01 00:00'),
-          end: new Date('2021-01-01 01:00'),
-          title: 'Event 1',
-          id: '1',
-        };
-
-        const event2: CalendarEvent = {
-          start: new Date('2021-01-01 00:00'),
-          end: new Date('2021-01-01 01:00'),
-          title: 'Event 2',
-          id: '2',
-        };
-
-        const event3: CalendarEvent = {
-          start: new Date('2021-01-01 00:00'),
-          end: new Date('2021-01-01 01:00'),
-          title: 'Event 3',
-          id: '3',
-        };
-
-        const event4: CalendarEvent = {
-          start: new Date('2021-01-01 00:00'),
-          end: new Date('2021-01-01 01:00'),
-          title: 'Event 4',
-          id: '4',
-        };
-        const result = getCalendarSlot(
-          testSlot,
-          getCalendarLinkedEventsNodes([event1, event2, event3, event4]),
-        );
-        expect(result.hiddenColumns.length).toBe(1);
         expect(result.visibleColumns.length).toBe(3);
       });
     });

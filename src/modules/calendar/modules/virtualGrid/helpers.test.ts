@@ -92,7 +92,6 @@ describe('grid helpers', () => {
       });
 
       expect(grid.widthX).toBe(3);
-      expect(grid.overflowLimitCells.length).toBe(1);
       expect(grid.cells.length).toBe(3);
     });
   });

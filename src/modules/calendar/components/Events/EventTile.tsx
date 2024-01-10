@@ -20,7 +20,6 @@ export function EventTile({ event, className, disableDrag }: EventTileProps) {
   const isAnyEventDragging = useCalendarStore(
     (state) => state.isAnyEventDragging,
   );
-  const operationText = event.operation ? `(${event.operation})` : '';
 
   return (
     <div
@@ -28,7 +27,7 @@ export function EventTile({ event, className, disableDrag }: EventTileProps) {
       {...draggableAPI.listeners}
       {...draggableAPI.attributes}
       style={{
-        height: `${getEventRequiredSlotsNumber(event) * 100}%`,
+        height: `${getEventRequiredSlotsNumber(event) * 25}px`,
         pointerEvents: isAnyEventDragging ? 'none' : 'all',
         backgroundColor: '#ccc',
         opacity:
@@ -41,8 +40,6 @@ export function EventTile({ event, className, disableDrag }: EventTileProps) {
       draggable
     >
       {event.title}
-      <br />
-      {operationText}
     </div>
   );
 }

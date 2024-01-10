@@ -33,13 +33,6 @@ export function WeekDaySlot({ slot }: WeekDaySlotProps) {
             return <EventTile key={slotRow.event.id} event={slotRow.event} />;
           })}
         </div>
-        <div className="week-day-slot__spacer">
-            {
-             slot.hiddenColumns.length > 0 && (
-              `+ ${slot.hiddenColumns?.length}`
-             )
-            }
-          </div>
       </div>
     </div>
   );

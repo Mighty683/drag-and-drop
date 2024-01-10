@@ -16,7 +16,9 @@ import {
   CalendarSlot,
   CalendarSlotColumn,
   CalendarSlotTime,
+  DAY,
   GRID_CELL_DURATION,
+  GRID_CELL_DURATION_MINUTES,
   TimeEvent,
 } from './types';
 
@@ -37,12 +39,12 @@ export function getDaySlotsTimes(date: Date) {
   const slots: CalendarSlotTime[] = [];
   const start = new Date(date);
   start.setHours(0, 0, 0, 0);
-  for (let i = 0; i < 48; i++) {
+  for (let i = 0; i < DAY / GRID_CELL_DURATION; i++) {
     const newDate = new Date(start);
-    newDate.setMinutes(start.getMinutes() + i * 30);
+    newDate.setMinutes(start.getMinutes() + i * 15);
     slots.push({
       start: newDate,
-      end: new Date(newDate.getTime() + GRID_CELL_DURATION),
+      end: new Date(newDate.getTime() + GRID_CELL_DURATION_MINUTES),
     });
   }
   return slots;
@@ -228,20 +230,15 @@ export function getCalendarSlot(
       start: slotTimes.start,
       end: slotTimes.end,
       visibleColumns: [],
-      hiddenColumns: [],
     };
   }
   const virtualGrid = renderVirtualGridFromNode(slotNode);
-  const { visibleColumns, hiddenColumns } = reduceGridToSlotColumns(
-    slotTimes,
-    virtualGrid,
-  );
+  const { visibleColumns } = reduceGridToSlotColumns(slotTimes, virtualGrid);
 
   return {
     start: slotTimes.start,
     end: slotTimes.end,
     visibleColumns,
-    hiddenColumns,
   };
 }
 
@@ -250,23 +247,16 @@ export function reduceGridToSlotColumns(
   grid: CalendarNodeVirtualGrid,
 ): {
   visibleColumns: CalendarSlotColumn[];
-  hiddenColumns: CalendarSlotColumn[];
 } {
   const visibleCells = grid.cells.filter((cell) =>
-    isEventInSlot(cell.event, slotTimes),
-  );
-  const hiddenCells = grid.overflowLimitCells.filter((cell) =>
     isEventInSlot(cell.event, slotTimes),
   );
   const visibleColumns: CalendarSlotColumn[] = reduceCellsToVisibleColumns(
     grid.widthX,
     visibleCells,
   );
-  const hiddenColumns: CalendarSlotColumn[] =
-    reduceCellsToHiddenColumns(hiddenCells);
   return {
     visibleColumns,
-    hiddenColumns,
   };
 }
 
@@ -292,16 +282,6 @@ export function reduceCellsToVisibleColumns(
     }
   }
   return slotColumns;
-}
-
-export function reduceCellsToHiddenColumns(
-  cells: CalendarNodeVirtualGridCell[],
-): CalendarSlotColumn[] {
-  return cells.map((cell) => ({
-    inScopeOfSlot: true,
-    event: cell.event,
-    id: cell.event.id,
-  }));
 }
 
 export function splitEventsBySlot(
