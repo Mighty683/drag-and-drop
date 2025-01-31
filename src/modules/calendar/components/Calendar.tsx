@@ -9,6 +9,7 @@ import { WeekView } from './WeekView';
 
 export function Calendar() {
   const eventsAPI = useCalendarStore((state) => ({
+    addEvent: state.addEvent,
     editEvent: state.editEvent,
     removeEvent: state.removeEvent,
     setIsAnyEventDragging: state.setIsAnyEventDragging,
@@ -21,26 +22,26 @@ export function Calendar() {
     <DndContext
       onDragStart={(props) => {
         const event = props.active.data.current as CalendarEvent;
-        eventsAPI.editEvent(event.id, {
-          ...event,
-          operation: CalendarEventOperations.dragged,
-        });
+        eventsAPI.removeEvent(event.id);
         eventsAPI.setIsAnyEventDragging(true);
         setDraggedEvent(event);
       }}
       onDragEnd={(props) => {
-        const event = props.active.data.current as CalendarEvent;
         const targetSlot = props.over?.data.current as CalendarSlot | undefined;
+        console.log(event, targetSlot, props);
+        if (!draggedEvent) {
+          return;
+        }
         if (targetSlot) {
-          eventsAPI.editEvent(event.id, {
-            ...event,
+          eventsAPI.addEvent({
+            ...draggedEvent,
             operation: CalendarEventOperations.none,
             start: targetSlot.start,
-            end: getEventEndIfStartInSlot(event, targetSlot),
+            end: getEventEndIfStartInSlot(draggedEvent, targetSlot),
           });
         } else {
-          eventsAPI.editEvent(event.id, {
-            ...event,
+          eventsAPI.editEvent(draggedEvent.id, {
+            ...draggedEvent,
             operation: undefined,
           });
         }
